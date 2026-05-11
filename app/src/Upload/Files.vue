@@ -15,7 +15,7 @@
           @keydown.space.prevent="triggerFileInput()"
         )
           a
-            icon(name="plus", scale="4")
+            icon(name="fa-plus", scale="4")
             br
             |  {{ $root.lang.dropFilesHere }}
         table.table.table-striped
@@ -30,7 +30,7 @@
                 p
                   input.form-control.input-sm(type="text", :placeholder="$root.lang.comment", v-model="file.comment", :disabled="disabled")
                 .alert.alert-danger(v-if="file.error")
-                  icon.fa-fw(name="exclamation-triangle")
+                  icon.fa-fw(name="fa-exclamation-triangle")
                   |  {{ file.error }}
                 .progress(v-show="!file.error && (state === 'uploading' || state === 'uploaded')")
                   .progress-bar.progress-bar-success.progress-bar-striped(:style="{width: file.progress.percentage+'%'}", :class="{active:!file.uploaded}")
@@ -44,7 +44,7 @@
                   tabindex="0",
                   role="button"
                 )
-                  icon(name="times")
+                  icon(name="fa-times")
 
         input#fileInput(type="file", @change="$store.dispatch('upload/addFiles', $event.target.files)", multiple="", :disabled="disabled", style="display: none")
         .text-right
@@ -57,16 +57,12 @@
             tabindex="0",
             role="button"
           )
-            icon(name="plus-circle")
+            icon(name="fa-plus-circle")
 </template>
 
 
-<script type="text/babel">
+<script>
   import dragDrop from 'drag-drop';
-  import 'vue-awesome/icons/exclamation-triangle'
-  import 'vue-awesome/icons/plus'
-  import 'vue-awesome/icons/plus-circle'
-  import 'vue-awesome/icons/times'
   import { mapGetters, mapState } from 'vuex';
   import FileIcon from '../common/FileIcon.vue';
   import { humanFileSize } from "./store/upload";
@@ -84,7 +80,6 @@
     },
 
     mounted() {
-      // init drop files support on <body>
       this.dragDropCleanup = dragDrop('body', files => this.$store.dispatch('upload/addFiles', files));
     },
 

@@ -34,30 +34,21 @@
               @keydown.enter.prevent='generatePassword()'
               @keydown.space.prevent='generatePassword()'
             )
-              icon(name="key")
+              icon(name="fa-key")
 </template>
 
-<script type="text/babel">
+<script>
   import { mapState } from 'vuex';
-  import 'vue-awesome/icons/key';
 
   const passGen = {
     _pattern: /[A-Z0-9_\-+!]/,
     _getRandomByte: function() {
       const result = new Uint8Array(1);
-      let fixedcrypto = window.msCrypto;
-      if (!fixedcrypto) {
-        fixedcrypto = window.crypto;
-      }
-      fixedcrypto.getRandomValues(result);
+      window.crypto.getRandomValues(result);
       return result[0];
     },
     generate: function(length) {
-      let fixedcrypto2 = window.msCrypto;
-      if (!fixedcrypto2) {
-        fixedcrypto2 = window.crypto;
-      }
-      if (!fixedcrypto2 || !fixedcrypto2.getRandomValues) return '';
+      if (!window.crypto || !window.crypto.getRandomValues) return '';
       return Array.apply(null, { 'length': length }).map(function() {
         let result;
         while (true) {

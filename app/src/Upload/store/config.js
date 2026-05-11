@@ -1,18 +1,15 @@
-import Vue from 'vue';
-
 export default {
   namespaced: true,
 
   state: {
     uploadPassRequired: false,
     uploadPass: null,
-
   },
 
   mutations: {
     SET(state, val) {
       for (let k in val) {
-        Vue.set(state, k, val[k]);
+        state[k] = val[k];
       }
     }
   },

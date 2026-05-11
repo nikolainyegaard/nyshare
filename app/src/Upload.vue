@@ -9,11 +9,11 @@
       tabindex="-1",
       role="button"
     )
-      icon.fa-fw(name="cloud-upload-alt")
+      icon.fa-fw(name="fa-cloud-upload-alt")
       span.hidden-xs  {{ $root.lang.newUpload }}
     .alert.alert-danger(v-show="error")
       strong
-        icon.fa-fw(name="exclamation-triangle")
+        icon.fa-fw(name="fa-exclamation-triangle")
         |  {{ error }}
     form.well.upload-uploadPassword(v-if='showLogin', @submit.prevent='setUploadPass()')
       h3 {{ $root.lang.uploadPassword }}
@@ -23,7 +23,7 @@
         strong {{ $root.lang.accessDenied }}
       |
       button.uploadPass.btn.btn-primary(:disabled='uploadPassword.length<1', type="submit")
-        icon.fa-fw(name="key")
+        icon.fa-fw(name="fa-key")
         |  {{ $root.lang.login }}
     div(v-else-if="$root.configFetched")
       .well(v-show="state === 'uploaded'")
@@ -38,14 +38,14 @@
             tabindex="0",
             role="button"
           )
-            icon.fa-fw(name="qrcode")
+            icon.fa-fw(name="fa-qrcode")
             | QR-Code
           a.btn.btn-primary(
             :href="mailLnk",
             :title="$root.lang.sendViaMail",
             tabindex="0"
           )
-            icon.fa-fw(name="envelope")
+            icon.fa-fw(name="fa-envelope")
             |  {{ $root.lang.email }}
           clipboard.btn.btn-primary(
             :value='shareUrl',
@@ -53,7 +53,7 @@
             tabindex="0"
           )
         h3.text-success
-          icon.fa-fw(name="check")
+          icon.fa-fw(name="fa-check")
           |  {{ $root.lang.uploadCompleted }}
         div.share-link
           span.title {{ $root.lang.downloadLink }}:
@@ -61,7 +61,7 @@
           a(:href='shareUrl') {{ shareUrl }}
       .row.overall-process(v-show="state === 'uploading'")
         .col-xs-12
-          icon.pull-left(name="spinner", scale="2", spin="", style="margin-right: 10px")
+          icon.pull-left(name="fa-spinner", scale="2", animation="spin", style="margin-right: 10px")
           .progress
             .progress-bar.progress-bar-success.progress-bar-striped.active(:style="{width: percentUploaded+'%'}")
               span(v-show='percentUploaded>8') {{ percentUploaded }}%
@@ -73,30 +73,22 @@
           settings
           .text-right(v-show='showUploadBtn')
             button#uploadBtn.btn.btn-lg.btn-success(@click="$store.dispatch('upload/upload')")
-              icon.fa-fw(name="upload")
+              icon.fa-fw(name="fa-upload")
               |  {{ $root.lang.upload }}
           .text-right(v-show="state === 'uploadError'")
             button#uploadRetryBtn.btn.btn-lg.btn-success(@click="$store.dispatch('upload/upload')")
-              icon.fa-fw(name="upload")
+              icon.fa-fw(name="fa-upload")
               |  {{ $root.lang.retry }}
 </template>
 
-<script type="text/babel">
+<script>
   import { Encoder, Byte } from "@nuintun/qrcode";
   import { mapState, mapGetters } from 'vuex';
 
   import Settings from './Upload/Settings.vue';
   import Files from './Upload/Files.vue';
   import Clipboard from './common/Clipboard.vue'
-  import 'vue-awesome/icons/cloud-upload-alt';
-  import 'vue-awesome/icons/upload';
-  import 'vue-awesome/icons/check';
-  import 'vue-awesome/icons/spinner';
-  import 'vue-awesome/icons/envelope';
-  import 'vue-awesome/icons/qrcode';
-  import 'vue-awesome/icons/exclamation-triangle';
   import { humanFileSize } from "./Upload/store/upload";
-
 
   export default {
     name: 'Upload',

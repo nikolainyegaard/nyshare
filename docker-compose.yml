@@ -1,0 +1,15 @@
+services:
+  nyshare:
+    image: ghcr.io/nikolainyegaard/nyshare:latest
+    container_name: nyshare
+    environment:
+      - PSITRANSFER_ADMIN_PASS=changeme
+    volumes:
+      - ./data:/data
+    networks:
+      - proxy-fileshare
+    restart: unless-stopped
+
+networks:
+  proxy-fileshare:
+    external: true

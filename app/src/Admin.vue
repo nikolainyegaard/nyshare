@@ -1,11 +1,11 @@
 <template lang="pug">
   .download-app
     a.btn.btn-sm.btn-info.btn-admin-refresh(@click='login()', title='Refresh', v-if="loggedIn")
-      icon(name="sync-alt")
+      icon(name="fa-sync-alt")
 
     .alert.alert-danger(v-show="error")
       strong
-        icon.fa-fw(name="exclamation-triangle")
+        icon.fa-fw(name="fa-exclamation-triangle")
         |  {{ error }}
     form.well(v-if='!loggedIn', @submit.stop.prevent="login")
       h3 Password
@@ -15,7 +15,7 @@
         strong Access denied!
       |
       button.btn.btn-primary(type="submit", :disabled="!password")
-        icon.fa-fw(name="sign-in-alt")
+        icon.fa-fw(name="fa-sign-in-alt")
         |  login
 
     div(v-if="loggedIn")
@@ -32,25 +32,25 @@
             tr.bucket(@click="expandView(sid)")
               td
                 | {{ sid }}
-                icon.pull-right(name="key", v-if="sum[sid].password", title="Password protected")
-              td {{ sum[sid].created | date }}
+                icon.pull-right(name="fa-key", v-if="sum[sid].password", title="Password protected")
+              td {{ formatDate(sum[sid].created) }}
               td
-                template(v-if="sum[sid].lastDownload") {{ sum[sid].lastDownload | date}}
-                template(v-else="") -
+                template(v-if="sum[sid].lastDownload") {{ formatDate(sum[sid].lastDownload) }}
+                template(v-else) -
               td
-                template(v-if="typeof sum[sid].firstExpire === 'number'") {{ sum[sid].firstExpire | date }}
+                template(v-if="typeof sum[sid].firstExpire === 'number'") {{ formatDate(sum[sid].firstExpire) }}
                 template(v-else)  {{ sum[sid].firstExpire }}
               td.text-right {{ humanFileSize(sum[sid].size) }}
           tbody.expanded(v-if="expand === sid")
             template(v-for="file in bucket")
               tr.file
                 td {{ file.metadata.name }}
-                td {{+file.metadata.createdAt | date}}
+                td {{ formatDate(+file.metadata.createdAt) }}
                 td
-                  template(v-if="file.metadata.lastDownload") {{ +file.metadata.lastDownload | date}}
-                  template(v-else="") -
+                  template(v-if="file.metadata.lastDownload") {{ formatDate(+file.metadata.lastDownload) }}
+                  template(v-else) -
                 td
-                  template(v-if="typeof file.expireDate === 'number'") {{ file.expireDate | date }}
+                  template(v-if="typeof file.expireDate === 'number'") {{ formatDate(file.expireDate) }}
                   template(v-else) {{ file.expireDate }}
                 td.text-right {{ humanFileSize(file.size) }}
         tfoot
@@ -62,12 +62,6 @@
 
 
 <script>
-  import 'vue-awesome/icons/exclamation-triangle';
-  import 'vue-awesome/icons/sync-alt';
-  import 'vue-awesome/icons/sign-in-alt';
-  import 'vue-awesome/icons/key';
-
-
   export default {
     name: 'app',
 
@@ -117,6 +111,7 @@
 
       expandDb() {
         this.sizeSum = 0;
+        this.sum = {};
         Object.keys(this.db).forEach(sid => {
           const bucketSum = {
             firstExpire: Number.MAX_SAFE_INTEGER,
@@ -146,7 +141,7 @@
             }
           });
           this.sizeSum += bucketSum.size;
-          this.$set(this.sum, sid, bucketSum);
+          this.sum[sid] = bucketSum;
         });
       },
 
@@ -160,9 +155,15 @@
         return Math.max(fileSizeInBytes, 0.00).toFixed(2) + byteUnits[i];
       },
 
+      formatDate(val) {
+        if(!val) return val;
+        let dt = val instanceof Date ? val : new Date(val);
+        if(isNaN(dt.getTime())) return val;
+        const f = d => d < 10 ? '0' + d : d;
+        return dt.getFullYear() + '-' + f(dt.getMonth() + 1) + '-' + f(dt.getDate())
+          + ' ' + f(dt.getHours()) + ':' + f(dt.getMinutes());
+      },
     },
-
-
   }
 </script>
 

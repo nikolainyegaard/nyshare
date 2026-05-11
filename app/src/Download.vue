@@ -1,11 +1,11 @@
 <template lang="pug">
   .download-app
     a.btn.btn-sm.btn-info.btn-new-session(@click='newSession()', :title='$root.lang.newUpload')
-      icon.fa-fw(name="cloud-upload-alt")
+      icon.fa-fw(name="fa-cloud-upload-alt")
       span.hidden-xs  {{ $root.lang.newUpload }}
     .alert.alert-danger(v-show="error")
       strong
-        icon.fa-fw(name="exclamation-triangle")
+        icon.fa-fw(name="fa-exclamation-triangle")
         |  {{ error }}
     .well(v-if='needsPassword')
       h3 {{ $root.lang.password }}
@@ -15,7 +15,7 @@
         strong {{ $root.lang.accessDenied }}
       |
       button.decrypt.btn.btn-primary(:disabled='password.length<1', @click='fetchBucket()')
-        icon.fa-fw(name="key")
+        icon.fa-fw(name="fa-key")
         |  {{ $root.lang.decrypt }}
     .panel.panel-primary(v-if='!needsPassword && !loading')
       .panel-heading
@@ -29,7 +29,7 @@
             tabindex="0"
             role="button"
           )
-            icon.fa-fw(name="download")
+            icon.fa-fw(name="fa-download")
             |  zip
           a.btn.btn-sm.btn-default(
             @click="downloadAll('tar.gz')"
@@ -39,7 +39,7 @@
             tabindex="0"
             role="button"
           )
-            icon.fa-fw(name="download")
+            icon.fa-fw(name="fa-download")
             |  tar.gz
       .panel-body
         table.table.table-hover.table-striped.files
@@ -59,9 +59,9 @@
                 div.pull-right.btn-group
                   clipboard.btn.btn-sm.btn-default(:value='baseURI + file.url', @change='copied(file, $event)', :title='$root.lang.copyToClipboard')
                     a
-                      icon(name="copy")
+                      icon(name="fa-copy")
                   a.btn.btn-sm.btn-default(:title="$root.lang.preview", @click.prevent.stop="preview=file", v-if="file.previewType")
-                    icon(name="eye")
+                    icon(name="fa-eye")
                 i.pull-right.fa.fa-check.text-success.downloaded(v-show='file.downloaded')
                 p
                   strong {{ file.metadata.name }}
@@ -80,18 +80,9 @@
   import Clipboard from './common/Clipboard.vue';
   import PreviewModal from './Download/PreviewModal.vue';
 
-  import 'vue-awesome/icons/cloud-upload-alt';
-  import 'vue-awesome/icons/exclamation-triangle';
-  import 'vue-awesome/icons/copy';
-  import 'vue-awesome/icons/check';
-  import 'vue-awesome/icons/download';
-  import 'vue-awesome/icons/key';
-  import 'vue-awesome/icons/eye';
-
   function getPreviewType(file, maxSize) {
     if(!file || !file.metadata) return false;
     if(file.metadata.retention === 'one-time') return false;
-    // no preview for files size > 2MB
     if(file.size > maxSize) return false;
     if(file.metadata.type && file.metadata.type.match(/^image\/.*/)) return 'image';
     else if(file.metadata.type && file.metadata.type.match(/(text\/|xml|json|javascript|x-sh)/)
@@ -109,7 +100,7 @@
       return {
         files: [],
         sid: document.location.pathname.match(/^.*\/([^\/?#]+)/)[1],
-        baseURI: this.$root.baseURI,
+        baseURI: document.head.getElementsByTagName('base')[0].href.replace(/\/$/, ''),
         passwordWrong: false,
         needsPassword: false,
         loading: true,
@@ -130,11 +121,9 @@
       previewFiles: function() {
         return this.files.filter(f => !!f.previewType);
       }
-
     },
 
     methods: {
-
       download(file) {
         if(file.downloaded && file.metadata.retention === 'one-time') {
           alert(this.$root.lang.oneTimeDownloadExpired);
@@ -150,16 +139,21 @@
         file.downloaded = true;
       },
 
-      async downloadAll(format) {
-        let token = this.archiveToken;
+      downloadAll(format) {
+        const token = this.archiveToken;
         if (!token) {
           console.error('Archive token not found.');
           return;
         }
-        document.location.href = this.$root.baseURI
-          + '/files/' + this.sid + '++'
-          + this.archiveToken + '.' + format;
-        this.files.forEach(f => { f.downloaded = true; })
+        const baseURI = document.head.getElementsByTagName('base')[0].href.replace(/\/$/, '');
+        const url = baseURI + '/files/' + this.sid + '++' + token + '.' + format;
+        const a = document.createElement('a');
+        a.href = url;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        this.files.forEach(f => { f.downloaded = true; });
       },
 
       copied(file, $event) {

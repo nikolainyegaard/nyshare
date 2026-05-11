@@ -1,35 +1,28 @@
-import "regenerator-runtime/runtime.js";
+import { createApp, h } from 'vue'
+import { OhVueIcon } from 'oh-vue-icons'
+import './icons.js'
 
-if(!String.prototype.startsWith) {
-  String.prototype.startsWith = function(searchString, position) {
-    position = position || 0;
-    return this.indexOf(searchString, position) === position;
-  };
-}
+import Download from './Download.vue'
+import { httpGet } from './common/util'
 
-import Vue from 'vue';
-import { httpGet } from "./common/util";
-import Download from './Download.vue';
-import Icon from 'vue-awesome/components/Icon'
-
-Vue.component('icon', Icon);
-
-new Vue({
-  el: '#download',
-  data: {
-    baseURI: document.head.getElementsByTagName('base')[0].href.replace(/\/$/,''),
-    lang: {},
+const app = createApp({
+  data() {
+    return {
+      baseURI: document.head.getElementsByTagName('base')[0].href.replace(/\/$/),
+      lang: {},
+    }
   },
+  render: () => h(Download),
   async beforeCreate() {
-    // Fetch translations
     try {
-      this.lang = await httpGet('lang.json');
+      this.lang = await httpGet('lang.json')
+    } catch (e) {
+      alert(e)
     }
-    catch (e) {
-      alert(e);
-    }
-  },
-  render: h => h(Download)
-});
+  }
+})
 
-window.PSITRANSFER_VERSION = PSITRANSFER_VERSION;
+app.component('icon', OhVueIcon)
+app.mount('#download')
+
+window.PSITRANSFER_VERSION = PSITRANSFER_VERSION

@@ -1,12 +1,10 @@
 'use strict';
-import Vue from 'vue';
-import Vuex from 'vuex';
-Vue.use(Vuex);
+import { createStore } from 'vuex';
 
 import config from './store/config.js';
 import upload from './store/upload.js';
 
-export default new Vuex.Store({
+export default createStore({
   modules: {
     config,
     upload
@@ -14,7 +12,6 @@ export default new Vuex.Store({
 
   state: {
     error: '',
-    // disable all input fields
     disabled: false,
     /* States:
      * new: can modify settings and add/remove files

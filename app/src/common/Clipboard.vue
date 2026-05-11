@@ -1,30 +1,14 @@
-<!--
-# Clipboard Component
-Copies a string into the clipboard
-
-## Props
-* value: String
-
-## Slots
-* default: Replaces inner content
-* text:    Replaces the text
--->
-
 <template lang="pug">
   span(@click.stop='copy()', style='cursor: pointer')
     slot(:state='state')
-      icon.fa-fw(name="copy", v-if="state==='pristine'")
-      icon.fa-fw(name="check", v-if="state==='copied'")
-      icon.fa-fw(name="exclamation-triangle", v-if="state==='error'")
+      icon.fa-fw(name="fa-copy", v-if="state==='pristine'")
+      icon.fa-fw(name="fa-check", v-if="state==='copied'")
+      icon.fa-fw(name="fa-exclamation-triangle", v-if="state==='error'")
       slot(name='text')  {{ $root.lang.clipboard }}
 </template>
 
 
-<script type="text/babel">
-  import 'vue-awesome/icons/check';
-  import 'vue-awesome/icons/copy';
-  import 'vue-awesome/icons/exclamation-triangle';
-
+<script>
   export default {
     name: "Clipboard",
     props: {
