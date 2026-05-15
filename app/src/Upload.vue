@@ -65,7 +65,7 @@
           a(:href='shareUrl') {{ shareUrl }}
       .row.overall-process(v-show="state === 'uploading'")
         .col-xs-12
-          icon.pull-left(name="fa-spinner", scale="2", animation="spin", style="margin-right: 10px")
+          icon(name="fa-spinner", scale="2", animation="spin")
           .progress
             .progress-bar.progress-bar-success.progress-bar-striped.active(:style="{width: percentUploaded+'%'}")
               span(v-show='percentUploaded>8') {{ percentUploaded }}%
