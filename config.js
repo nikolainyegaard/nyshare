@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const fsp = require('fs-promise');
+const fsp = require('fs-extra');
 
 // Default Config
 // Do not edit this, generate a config.<ENV>.js for your NODE_ENV

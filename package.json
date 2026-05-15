@@ -22,7 +22,7 @@
     "@node-rs/argon2": "^2.0.2",
     "debug": "^4.4.3",
     "express": "^5.2.1",
-    "fs-promise": "^2.0.3",
+    "fs-extra": "^11.0.0",
     "http-errors": "^2.0.1",
     "method-override": "^3.0.0",
     "morgan": "^1.10.1",
@@ -40,6 +40,9 @@
     "test": "node --test 'tests/**/*.test.js'",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:integration": "node --test tests/integration/*.test.js"
+  },
+  "overrides": {
+    "glob": "latest"
   },
   "engines": {
     "node": ">= 24"

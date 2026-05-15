@@ -6,8 +6,8 @@
         a.btn.btn-primary(@click='refreshData()', title='Refresh')
           icon(name="fa-sync-alt")
           |  Refresh
-        form(method='post', action='/admin/logout', style='display:inline')
-          button.btn.btn-dark(type='submit') Log out
+        form(method='post', action='/admin/logout', style='display:contents')
+          button.btn.btn-primary(type='submit') Log out
 
     .alert.alert-danger(v-show="error")
       strong
