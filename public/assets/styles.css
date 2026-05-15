@@ -449,6 +449,20 @@ svg.fa-icon {
 
 .footer a:hover { color: var(--text-dim); }
 
+.dev-banner {
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  opacity: 0.5;
+  font-family: monospace;
+}
+
+.dev-banner a {
+  color: var(--text-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ------------------------------------------------------------------ */
 /* Upload page specific */
 /* ------------------------------------------------------------------ */
