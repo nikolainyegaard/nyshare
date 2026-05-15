@@ -187,20 +187,20 @@ export default {
                 commit('ERROR', 'You are offline. Your uploads will resume as soon as you are back online.', { root: true });
                 if (!onOnlineHandlerAttached) {
                   onOnlineHandlerAttached = true;
-                  // attach onOnline handler
                   window.addEventListener('online', onOnlineHandler);
                 }
               }
-              // Client Error
+              // Server responded with an error (4xx or 5xx) - no point retrying
               else if (error && error.originalResponse && error.originalResponse._xhr &&
-                error.originalResponse._xhr.status >= 400 && error.originalResponse._xhr.status < 500) {
-                commit('UPDATE_FILE', {
-                  file, data: {
-                    error: jsonResMessage || error.message || error.toString()
-                  }
-                });
+                error.originalResponse._xhr.status >= 400) {
+                const msg = jsonResMessage || error.message || error.toString();
+                commit('UPDATE_FILE', { file, data: { error: msg } });
+                if (state.files.every(f => f.error)) {
+                  commit('STATE', 'uploadError', { root: true });
+                  commit('ERROR', msg, { root: true });
+                }
               }
-              // Generic Error
+              // No server response (network error) - retry
               else {
                 if (file._retries > 30) {
                   commit('UPDATE_FILE', {

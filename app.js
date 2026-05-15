@@ -1,6 +1,23 @@
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 const config = require('./config');
+
+// Pre-launch: verify the upload directory is writable before doing anything else.
+const _testPath = path.join(config.uploadDir, '.write-test');
+try {
+  fs.writeFileSync(_testPath, '');
+  fs.unlinkSync(_testPath);
+} catch(e) {
+  if(e.code === 'EACCES') {
+    console.error(`Startup error: upload directory "${config.uploadDir}" is not writable by this process.`);
+    console.error('Fix: ensure the directory is owned or writable by the container user (UID 1000).');
+    console.error('  Host fix: sudo chown 1000:1000 /path/to/data');
+    process.exit(1);
+  }
+  throw e;
+}
+
 const app = require('./lib/endpoints');
 const eventBus = require('./lib/eventBus');
 

@@ -1,7 +1,10 @@
 <template lang="pug">
-  .download-app
-    a.btn.btn-sm.btn-info.btn-admin-refresh(@click='login()', title='Refresh', v-if="loggedIn")
-      icon(name="fa-sync-alt")
+  .admin-app
+    .topbar
+      h1 nyshare - Admin
+      a.btn.btn-primary(@click='login()', title='Refresh', v-if="loggedIn")
+        icon(name="fa-sync-alt")
+        |  Refresh
 
     .alert.alert-danger(v-show="error")
       strong
@@ -167,17 +170,3 @@
   }
 </script>
 
-<style>
-  .bucket {
-    cursor: pointer;
-  }
-  .expanded {
-    background: #fafafa;
-  }
-  .expanded .bucket td {
-    font-weight: bold;
-  }
-  tfoot {
-    font-weight: bold;
-  }
-</style>
