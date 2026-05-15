@@ -441,13 +441,13 @@ svg.fa-icon {
   margin-top: 1rem;
 }
 
-.footer a {
+.footer .container a {
   color: var(--text-faint);
   font-size: 0.78rem;
   text-decoration: none;
 }
 
-.footer a:hover { color: var(--text-dim); }
+.footer .container a:hover { color: var(--text-dim); }
 
 .dev-banner {
   text-align: center;
