@@ -1,7 +1,7 @@
 <template lang="pug">
   .admin-app
     .topbar
-      h1 nyshare - Admin
+      h1 NyShare - Admin
       a.btn.btn-primary(@click='login()', title='Refresh', v-if="loggedIn")
         icon(name="fa-sync-alt")
         |  Refresh

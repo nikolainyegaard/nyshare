@@ -1,7 +1,7 @@
 <template lang="pug">
   .upload-app#uploadApp
     .topbar
-      h1 nyshare
+      h1 NyShare
       a.btn.btn-primary(
         v-if='!showLogin',
         @click='newSession()',
