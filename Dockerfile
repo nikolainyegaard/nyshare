@@ -5,7 +5,7 @@ ENV PSITRANSFER_UPLOAD_DIR=/data \
 
 LABEL maintainer="Christoph Wiechert <wio@psitrax.de>"
 
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata su-exec
 
 WORKDIR /app
 
@@ -15,6 +15,7 @@ ADD app /app/app
 ADD lang /app/lang
 ADD plugins /app/plugins
 ADD public /app/public
+ADD entrypoint.sh /entrypoint.sh
 
 # Rebuild the frontend apps
 RUN cd app && \
@@ -22,15 +23,13 @@ RUN cd app && \
     npm run build && \
     cd .. && \
     mkdir /data && \
-    chown node /data && \
     npm ci && \
-    rm -rf app
+    rm -rf app && \
+    chmod +x /entrypoint.sh
 
 EXPOSE 3000
 VOLUME ["/data"]
 
-USER node
-
 # HEALTHCHECK CMD wget -O /dev/null -q http://localhost:3000
 
-CMD ["node", "app.js"]
+ENTRYPOINT ["/entrypoint.sh"]
