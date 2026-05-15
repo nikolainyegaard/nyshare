@@ -2,17 +2,19 @@
   .upload-app#uploadApp
     .topbar
       h1 NyShare
-      a.btn.btn-primary(
-        v-if='!showLogin',
-        @click='newSession()',
-        @keydown.enter.prevent='newSession()',
-        @keydown.space.prevent='newSession()',
-        :title='$root.lang.newUpload',
-        tabindex="-1",
-        role="button"
-      )
-        icon.fa-fw(name="fa-cloud-upload-alt")
-        span.hidden-xs  {{ $root.lang.newUpload }}
+      .topbar-actions
+        a.btn.btn-primary(
+          v-if='!showLogin',
+          @click='newSession()',
+          @keydown.enter.prevent='newSession()',
+          @keydown.space.prevent='newSession()',
+          :title='$root.lang.newUpload',
+          tabindex="-1",
+          role="button"
+        )
+          icon.fa-fw(name="fa-cloud-upload-alt")
+          span.hidden-xs  {{ $root.lang.newUpload }}
+        a.btn.btn-dark(href='/admin') Manage
     .alert.alert-danger(v-show="error")
       strong
         icon.fa-fw(name="fa-exclamation-triangle")

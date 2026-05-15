@@ -1,7 +1,9 @@
 FROM node:24-alpine
 
+ARG BUILD_VERSION=dev
 ENV PSITRANSFER_UPLOAD_DIR=/data \
-    NODE_ENV=production
+    NODE_ENV=production \
+    BUILD_VERSION=${BUILD_VERSION}
 
 LABEL maintainer="Christoph Wiechert <wio@psitrax.de>"
 

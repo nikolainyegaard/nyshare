@@ -2,26 +2,19 @@
   .admin-app
     .topbar
       h1 NyShare - Admin
-      a.btn.btn-primary(@click='login()', title='Refresh', v-if="loggedIn")
-        icon(name="fa-sync-alt")
-        |  Refresh
+      .topbar-actions
+        a.btn.btn-primary(@click='refreshData()', title='Refresh')
+          icon(name="fa-sync-alt")
+          |  Refresh
+        form(method='post', action='/admin/logout', style='display:inline')
+          button.btn.btn-dark(type='submit') Log out
 
     .alert.alert-danger(v-show="error")
       strong
         icon.fa-fw(name="fa-exclamation-triangle")
         |  {{ error }}
-    form.well(v-if='!loggedIn', @submit.stop.prevent="login")
-      h3 Password
-      .form-group
-        input.form-control(type='password', v-model='password', autofocus="")
-      p.text-danger(v-show='passwordWrong')
-        strong Access denied!
-      |
-      button.btn.btn-primary(type="submit", :disabled="!password")
-        icon.fa-fw(name="fa-sign-in-alt")
-        |  login
 
-    div(v-if="loggedIn")
+    div
       table.table.table-hover
         thead
           tr
@@ -72,13 +65,14 @@
       return {
         db: {},
         sum: {},
-        loggedIn: false,
-        password: '',
         error: '',
-        passwordWrong: false,
         expand: false,
         sizeSum: 0
       }
+    },
+
+    mounted() {
+      this.refreshData();
     },
 
     methods: {
@@ -87,26 +81,23 @@
         this.expand = sid;
       },
 
-      login() {
-        if(!this.password) return;
+      refreshData() {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', 'admin/data.json');
-        xhr.setRequestHeader("x-passwd", this.password);
         xhr.onload = () => {
           if(xhr.status === 200) {
             try {
               this.db = JSON.parse(xhr.responseText);
-              this.loggedIn = true;
               this.error = '';
-              this.passwordWrong = false;
               this.expandDb();
             }
             catch(e) {
               this.error = e.toString();
             }
+          } else if(xhr.status === 401) {
+            window.location.href = '/admin/login';
           } else {
-            if(xhr.status === 403) this.passwordWrong = true;
-            else this.error = `${xhr.status} ${xhr.statusText}: ${xhr.responseText}`;
+            this.error = `${xhr.status} ${xhr.statusText}: ${xhr.responseText}`;
           }
         };
         xhr.send();

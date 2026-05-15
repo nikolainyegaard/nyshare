@@ -3,7 +3,9 @@ services:
     image: ghcr.io/nikolainyegaard/nyshare:latest
     container_name: nyshare
     environment:
-      - PSITRANSFER_ADMIN_PASS=changeme
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=changeme
+      - SECRET_KEY=changeme
     volumes:
       - ./data:/data
     networks:
