@@ -1,7 +1,7 @@
 module.exports = {
   langCode: "en",
   oldBrowserError: "Your browser is too old and does not support this function.",
-  dropFilesHere: "Drop your files here",
+  dropFilesHere: "Drop files here or click to upload",
   noPreviewAvailable: "No preview available",
   preview: "Preview",
   comment: "Comment",

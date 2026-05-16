@@ -45,19 +45,19 @@
                   role="button"
                 )
                   icon(name="fa-times")
+            tr.add-files-row(
+              v-show="files.length > 0 && !disabled",
+              @click="triggerFileInput()",
+              @keydown.enter.prevent="triggerFileInput()",
+              @keydown.space.prevent="triggerFileInput()",
+              tabindex="0",
+              role="button"
+            )
+              td(colspan="3")
+                icon(name="fa-plus-circle")
+                |  {{ $root.lang.dropFilesHere }}
 
         input#fileInput(type="file", @change="$store.dispatch('upload/addFiles', $event.target.files)", multiple="", :disabled="disabled", style="display: none")
-        .text-right
-          a.btn.btn-success.btn-sm(
-            @click="triggerFileInput()",
-            @keydown.enter.prevent="triggerFileInput()",
-            @keydown.space.prevent="triggerFileInput()",
-            :disabled="disabled",
-            v-show="files.length>0",
-            tabindex="0",
-            role="button"
-          )
-            icon(name="fa-plus-circle")
 </template>
 
 

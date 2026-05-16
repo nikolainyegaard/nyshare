@@ -139,7 +139,7 @@ pre {
 }
 
 .btn:hover:not(:disabled) { background: var(--btn-gray-hover); color: var(--btn-gray-text); }
-.btn:disabled, .btn[disabled] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+.btn:disabled, .btn[disabled="true"] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 
 .btn-primary { background: var(--btn-dark-bg); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--btn-dark-hover); color: #fff; }
@@ -583,6 +583,23 @@ svg.fa-icon {
 }
 
 .empty-files-big-plus a { color: inherit; }
+
+/* Small drop zone row at the bottom of the file list */
+.add-files-row > td {
+  border: 2px dashed var(--border-strong) !important;
+  border-radius: 4px;
+  text-align: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  user-select: none;
+}
+
+.add-files-row:hover > td,
+.add-files-row:focus > td {
+  border-color: #666 !important;
+  color: var(--text);
+  outline: none;
+}
 
 /* ------------------------------------------------------------------ */
 /* Download page specific */
