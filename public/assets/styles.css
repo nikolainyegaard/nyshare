@@ -585,6 +585,8 @@ svg.fa-icon {
 .empty-files-big-plus a { color: inherit; }
 
 /* Small drop zone row at the bottom of the file list */
+.upload-speed { color: var(--text-dim); }
+
 .add-files-row > td {
   border: 2px dashed var(--border-strong) !important;
   border-radius: 4px;

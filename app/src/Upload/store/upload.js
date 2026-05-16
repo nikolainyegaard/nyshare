@@ -113,12 +113,15 @@ export default {
           _File: files[i],
           name: files[i].name,
           comment: '',
-          progress: { percentage: 0, humanSize: 0, bytesUploaded: 0 },
+          progress: { percentage: 0, humanSize: 0, bytesUploaded: 0, speed: 0 },
           uploaded: false,
           error,
           humanSize: humanFileSize(files[i].size),
           _retryDelay: 500,
-          _retries: 0
+          _retries: 0,
+          _lastProgressTime: null,
+          _lastBytesUploaded: 0,
+          _lastSpeedCommitTime: 0,
         });
       }
     },
@@ -228,17 +231,32 @@ export default {
               file.error = '';
               file._retries = 0;
               file._retryDelay = 500;
+
+              const now = Date.now();
+              let speed = file.progress.speed;
+              if (file._lastProgressTime !== null) {
+                const elapsed = (now - file._lastProgressTime) / 1000;
+                if (elapsed > 0) {
+                  const instant = (bytesUploaded - file._lastBytesUploaded) / elapsed;
+                  speed = speed === 0 ? instant : 0.3 * instant + 0.7 * speed;
+                }
+              }
+              file._lastProgressTime = now;
+              file._lastBytesUploaded = bytesUploaded;
+
               const percentage = Math.round(bytesUploaded / bytesTotal * 10000) / 100;
+              const commitSpeed = now - file._lastSpeedCommitTime >= 500;
+              if (commitSpeed) file._lastSpeedCommitTime = now;
               commit('UPDATE_FILE', {
                 file,
-                data: { progress: { percentage, humanSize: humanFileSize(bytesUploaded), bytesUploaded } }
+                data: { progress: { percentage, humanSize: humanFileSize(bytesUploaded), bytesUploaded, speed: commitSpeed ? speed : file.progress.speed } }
               });
             },
             onSuccess() {
               commit('UPDATE_FILE', {
                 file, data: {
                   uploaded: true,
-                  progress: { percentage: 100, humanFileSize: file.humanSize, bytesUploaded: file._File.size }
+                  progress: { percentage: 100, humanFileSize: file.humanSize, bytesUploaded: file._File.size, speed: 0 }
                 }
               });
               if (state.files.every(f => f.uploaded)) {

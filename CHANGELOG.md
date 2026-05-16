@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-16
+
+### Added
+- Live upload speed display per file during upload, updated every 0.5s with EMA smoothing
+
 ## [0.1.0] - 2026-05-16
 
 ### Fixed
@@ -16,5 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the small add-files button with a dashed drop zone row at the bottom of the file list, consistent with the main drop area style
 - Updated `dropFilesHere` lang string (en) to mention clicking as well as dropping
 
-[Unreleased]: https://github.com/nikolainyegaard/nyshare/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/nikolainyegaard/nyshare/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/nikolainyegaard/nyshare/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/nikolainyegaard/nyshare/releases/tag/v0.1.0

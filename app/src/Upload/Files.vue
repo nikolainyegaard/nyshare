@@ -34,6 +34,7 @@
                   |  {{ file.error }}
                 .progress(v-show="!file.error && (state === 'uploading' || state === 'uploaded')")
                   .progress-bar.progress-bar-success.progress-bar-striped(:style="{width: file.progress.percentage+'%'}", :class="{active:!file.uploaded}")
+                small.upload-speed(v-if="state === 'uploading' && !file.uploaded && file.progress.speed > 0") {{ humanFileSize(file.progress.speed) }}/s
               td.btns
                 a(
                   style="cursor:pointer",
