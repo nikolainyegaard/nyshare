@@ -15,14 +15,19 @@ export function humanFileSize(fileSizeInBytes) {
 let onOnlineHandler = null;
 let onOnlineHandlerAttached = false;
 
+// Unambiguous alphabet: lowercase letters and digits, excluding o/0/i/l/1
+const SID_ALPHABET = 'abcdefghjkmnpqrstvwxyz23456789';
+const SID_LENGTH = 7;
+
 function randomSid() {
   try {
-    const bytes = new Uint8Array(6); // 12 hex chars
+    const bytes = new Uint8Array(SID_LENGTH);
     crypto.getRandomValues(bytes);
-    return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    return Array.from(bytes).map(b => SID_ALPHABET[b % SID_ALPHABET.length]).join('');
   } catch (e) {
-    // Fallback: keep a stable shape without extra deps
-    return uuid().replace(/-/g, '').slice(0, 12);
+    let result = '';
+    for (let i = 0; i < SID_LENGTH; i++) result += SID_ALPHABET[Math.floor(Math.random() * SID_ALPHABET.length)];
+    return result;
   }
 }
 

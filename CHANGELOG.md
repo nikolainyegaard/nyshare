@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Share link IDs shortened from 12 hex chars to 7 chars using an unambiguous alphabet (no 0/o, 1/i/l); ~21 billion combinations
+
 ## [0.1.1] - 2026-05-16
 
 ### Added
