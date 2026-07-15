@@ -25,8 +25,6 @@ services:
     image: ghcr.io/nikolainyegaard/nyshare:latest
     container_name: nyshare
     environment:
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=changeme
       - PSITRANSFER_TRUST_PROXY=uniquelocal
       - TZ=Europe/Oslo
     volumes:
@@ -56,14 +54,14 @@ Lives at `/admin`. It shows storage and download stats, every active share (crea
 
 ### Signing in
 
-Two login methods, either or both:
+Two login methods, either or both, managed in the admin panel's Authentication section:
 
-- **Username/password**: set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in the environment
-- **OpenID Connect**: configured in the admin panel under **Authentication** (discovery URL, client ID, client secret) and stored in `data/oauth.json`. Works with any OIDC provider (Authentik, Keycloak, Pocket ID, and others). Register the redirect URL `https://your-domain/admin/oidc/callback` with the provider. Changes apply after restarting the container.
+- **Username/password**: credentials are generated on first launch and printed to the container output (`docker logs nyshare`). Sign in with them and set your own password when prompted. Username and password changes apply immediately.
+- **OpenID Connect**: discovery URL, client ID and client secret, stored in `data/oauth.json`. Works with any OIDC provider (Authentik, Keycloak, Pocket ID, and others). Register the redirect URL `https://your-domain/admin/oidc/callback` with the provider (shown live in the settings when the external URL is set). Changes apply after restarting the container.
 
-The admin panel is disabled unless at least one method is configured. Session lifetime is set in the Authentication section (default 7 days).
+At least one method must stay enabled; disabling password login requires OIDC to be enabled and already running. Session lifetime is set in the Authentication section (default 7 days).
 
-**Locked out?** If OIDC is your only login method and the provider breaks, set `ADMIN_PASSWORD` in the environment and restart; sign in with the password and fix the settings.
+**Locked out?** Set `AUTH_RESET=1` in the environment and restart: OIDC is disabled and fresh admin credentials are printed to the container output. Sign in, fix the settings, then remove the variable.
 
 Client IPs in the dashboard and activity log require `PSITRANSFER_TRUST_PROXY=uniquelocal` (or another [Express trust proxy value](https://expressjs.com/en/guide/behind-proxies.html)) so the app trusts the reverse proxy's forwarded headers.
 
@@ -84,8 +82,7 @@ Environment variables in `docker-compose.yml`:
 | Variable | Default | Description |
 |---|---|---|
 | `PSITRANSFER_UPLOAD_DIR` | `/data` | Upload storage path inside the container. |
-| `ADMIN_USERNAME` | `admin` | Username for admin password login. |
-| `ADMIN_PASSWORD` | unset | Password for admin login; enables the admin panel when set. OIDC login is configured in the admin panel, not here. |
+| `AUTH_RESET` | unset | Set to `1` and restart to disable OIDC and regenerate admin credentials (printed to the container output). Remove after signing in. |
 | `PSITRANSFER_UPLOAD_PASS` | unset | Password required to upload; restricts public uploads. |
 | `PSITRANSFER_TRUST_PROXY` | unset | Express trust proxy value; use `uniquelocal` behind a reverse proxy on a private Docker network. |
 | `SECRET_KEY` | auto | Session signing key; generated once into `data/.secret_key` if unset. |

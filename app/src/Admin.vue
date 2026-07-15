@@ -15,6 +15,9 @@
         icon.fa-fw(name='fa-exclamation-triangle')
         |  {{ error }}
 
+    .alert.alert-warning(v-show='auth.must_change_password')
+      | You signed in with a generated password. Set a new one in the Authentication panel below.
+
     .stat-grid
       .stat-card
         .stat-value {{ shares.length }}
@@ -118,9 +121,19 @@
         small.text-muted changes apply after restart
       .panel-body.auth-settings
         p.text-muted
-          | OpenID Connect login for this admin panel, via any OIDC provider (Authentik, Keycloak, Pocket ID, and others).
-          | Username and password login is set with the ADMIN_USERNAME and ADMIN_PASSWORD environment variables.
+          | Password and OpenID Connect login for this admin panel (any OIDC provider: Authentik, Keycloak, Pocket ID, and others).
+          | At least one method must stay enabled. OIDC changes apply after restarting the container; password changes apply immediately.
         .alert.alert-warning(v-show='auth.restartNeeded') Saved settings differ from the running configuration. Restart the container to apply.
+        label.auth-check
+          input(type='checkbox', v-model='auth.password_login')
+          |  Enable password login
+        .form-group
+          label Username
+          input.form-control(type='text', v-model='auth.admin_username', spellcheck='false', placeholder='admin')
+        .form-group
+          label New password
+          input.form-control(type='password', v-model='auth.new_password', autocomplete='new-password', spellcheck='false', placeholder='leave blank to keep current')
+          small.text-muted {{ auth.must_change_password ? 'You are using a generated password. Set a new one.' : (auth.password_set ? 'A password is set.' : 'No password set.') }}
         .form-group
           label External URL
           input.form-control(type='text', v-model='auth.external_url', spellcheck='false', placeholder='https://share.example.com')
@@ -156,9 +169,9 @@
         .auth-actions
           button.btn.btn-primary(@click='saveAuth') Save
           small.text-muted {{ auth.status }}
-        p.text-muted.auth-lockout(v-show='!auth.password_login')
-          | Password login is off (no ADMIN_PASSWORD in the environment). If the OIDC provider breaks,
-          | set ADMIN_PASSWORD in docker-compose.yml and restart to get back in, then fix the settings here.
+        p.text-muted.auth-lockout
+          | Locked out? Set AUTH_RESET=1 in docker-compose.yml and restart: OIDC is disabled and fresh
+          | admin credentials are printed to the container output. Remove the variable after signing in.
 </template>
 
 
@@ -214,6 +227,10 @@
           client_secret_set: false,
           session_lifetime_days: 7,
           password_login: true,
+          admin_username: 'admin',
+          new_password: '',
+          password_set: false,
+          must_change_password: false,
           restartNeeded: false,
           showSecret: false,
           status: '',
@@ -341,6 +358,10 @@
             client_secret_set: data.client_secret_set,
             session_lifetime_days: data.session_lifetime_days || 7,
             password_login: data.password_login,
+            admin_username: data.admin_username || 'admin',
+            new_password: '',
+            password_set: data.password_set,
+            must_change_password: data.must_change_password,
             restartNeeded: data.enabled !== data.enabled_runtime,
           });
         } catch (e) {
@@ -350,8 +371,20 @@
 
       async saveAuth() {
         const a = this.auth;
+        if (!a.enabled && !a.password_login) {
+          a.status = 'At least one login method must stay enabled';
+          return;
+        }
         if (a.enabled && (!a.discovery_url.trim() || !a.client_id.trim())) {
           a.status = 'Discovery URL and client ID are required to enable OIDC';
+          return;
+        }
+        if (a.password_login && !a.password_set && !a.new_password) {
+          a.status = 'Set a password to enable password login';
+          return;
+        }
+        if (a.new_password && a.new_password.length < 8) {
+          a.status = 'Password must be at least 8 characters';
           return;
         }
         try {
@@ -365,6 +398,9 @@
               client_id: a.client_id.trim(),
               client_secret: a.client_secret,
               session_lifetime_days: a.session_lifetime_days,
+              password_login: a.password_login,
+              admin_username: a.admin_username.trim(),
+              new_password: a.new_password,
             }),
           });
           if (!res.ok) {
@@ -372,10 +408,15 @@
             throw new Error(data.message || `HTTP ${res.status}`);
           }
           if (a.client_secret) a.client_secret_set = true;
+          if (a.new_password) {
+            a.password_set = true;
+            a.must_change_password = false;
+          }
           a.client_secret = '';
+          a.new_password = '';
           a.showSecret = false;
-          a.status = 'Saved. Restart the container to apply.';
-          // all auth changes need a restart, so always show the banner
+          a.status = 'Saved. OIDC and session changes apply after a restart.';
+          // all OIDC changes need a restart, so always show the banner
           a.restartNeeded = true;
         } catch (e) {
           a.status = 'Save failed: ' + e.message;

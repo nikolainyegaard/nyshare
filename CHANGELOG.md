@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Admin credentials are generated on first launch and printed to the container output; after signing in, a prompt asks for a new password. ADMIN_USERNAME and ADMIN_PASSWORD env vars are gone; username and password are managed in the Authentication section and stored hashed
+- Password login can be disabled for OIDC-only setups; saving validates that at least one login method stays enabled, and password login can only be turned off while OIDC is active
+- AUTH_RESET=1 env var: on next launch, disables OIDC, regenerates admin credentials and prints them to the container output (the lockout hatch)
 - External URL setting in the Authentication section: the public base URL of the service, used for the OIDC redirect URL shown in the settings and available for future links
 - OpenID Connect login for the admin panel, configured from the new Authentication section on the admin page (any OIDC provider; settings stored in oauth.json in the data dir, restart to apply); the login page shows an OpenID Connect button next to (or instead of) the password form
 - Configurable admin session lifetime in the Authentication section

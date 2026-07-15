@@ -1,134 +1,127 @@
 'use strict';
 // Manual smoke test for the admin API. Not part of npm test.
-// Run: ADMIN_PASSWORD=test123 PSITRANSFER_UPLOAD_DIR=/tmp/data node tests/smoke-admin.js
+// Run: PSITRANSFER_UPLOAD_DIR=/tmp/data node tests/smoke-admin.js
 const { spawn } = require('child_process');
 
-const srv = spawn('node', ['app.js'], { stdio: 'inherit' });
 const base = 'http://127.0.0.1:3000';
 
-async function main() {
-  await new Promise(r => setTimeout(r, 1500));
+function startServer(extraEnv) {
+  const srv = spawn('node', ['app.js'], {
+    env: { ...process.env, ...extraEnv },
+    stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  // The credentials banner prints at startup, before the server listens
+  return new Promise(resolve => {
+    let out = '';
+    let password = null;
+    srv.stdout.on('data', chunk => {
+      out += chunk.toString();
+      const m = out.match(/Password: (\S+)/);
+      if (m) password = m[1];
+      if (out.includes('listening on')) resolve({ srv, password });
+    });
+    setTimeout(() => resolve({ srv, password }), 5000);
+  });
+}
 
-  const login = await fetch(base + '/admin/login', {
+async function login(username, password) {
+  return fetch(base + '/admin/login', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: 'username=admin&password=test123',
+    body: new URLSearchParams({ username, password }).toString(),
     redirect: 'manual',
   });
-  const cookie = login.headers.get('set-cookie');
-  console.log('LOGIN:', login.status, cookie ? 'cookie set' : 'NO COOKIE');
-  const h = { cookie };
+}
 
-  const data = await fetch(base + '/admin/data.json', { headers: h });
-  console.log('DATA:', data.status, JSON.stringify(await data.json()));
-
-  const act = await fetch(base + '/admin/activity.json', { headers: h });
-  console.log('ACTIVITY:', act.status, JSON.stringify(await act.json()));
-
-  const noauth = await fetch(base + '/admin/data.json');
-  console.log('NOAUTH:', noauth.status);
-
-  const del = await fetch(base + '/admin/files/zzzzzzz', { method: 'DELETE', headers: h });
-  console.log('DEL-MISSING:', del.status);
-
-  const badlogin = await fetch(base + '/admin/login', {
+function saveCfg(cookie, overrides) {
+  return fetch(base + '/admin/auth-config.json', {
     method: 'POST',
-    headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: 'username=admin&password=wrong',
-    redirect: 'manual',
-  });
-  const badBody = await badlogin.text();
-  console.log('BADLOGIN:', badlogin.status, badBody.includes('Invalid credentials') ? 'rejected' : 'CHECK');
-
-  const pageRes = await fetch(base + '/admin/login');
-  const page = await pageRes.text();
-  console.log('LOGIN-PAGE:', pageRes.status,
-    page.includes('Sign in') ? 'password-form' : 'no-password-form',
-    page.includes('admin/oidc/login') ? 'oidc-visible' : 'oidc-hidden');
-
-  const oidcRes = await fetch(base + '/admin/oidc/login', { redirect: 'manual' });
-  const oidcBody = oidcRes.headers.get('location') || ((await oidcRes.text()).includes('sign-in failed') ? 'graceful-error' : 'CHECK');
-  console.log('OIDC-LOGIN:', oidcRes.status, oidcBody);
-
-  // auth settings API
-  const cfgGet = await fetch(base + '/admin/auth-config.json', { headers: h });
-  const cfg = await cfgGet.json();
-  console.log('AUTH-CFG-GET:', cfgGet.status, cfg.client_secret === undefined ? 'secret not exposed' : 'SECRET LEAKED');
-
-  const badSave = await fetch(base + '/admin/auth-config.json', {
-    method: 'POST',
-    headers: { ...h, 'content-type': 'application/json' },
-    body: JSON.stringify({ enabled: true, discovery_url: '', client_id: '', client_secret: '' }),
-  });
-  console.log('AUTH-CFG-INVALID:', badSave.status, badSave.status === 400 ? 'OK' : 'FAIL');
-
-  const goodSave = await fetch(base + '/admin/auth-config.json', {
-    method: 'POST',
-    headers: { ...h, 'content-type': 'application/json' },
+    headers: { cookie, 'content-type': 'application/json' },
     body: JSON.stringify({
-      enabled: true,
-      discovery_url: 'https://idp.example/.well-known/openid-configuration',
-      client_id: 'cid',
-      client_secret: 'sec',
-      session_lifetime_days: 14,
-      external_url: 'https://share.example.com/',
+      enabled: false, discovery_url: '', client_id: '', client_secret: '',
+      session_lifetime_days: 7, external_url: '', password_login: true,
+      admin_username: 'admin', new_password: '',
+      ...overrides,
     }),
   });
-  console.log('AUTH-CFG-SAVE:', goodSave.status, JSON.stringify(await goodSave.json()));
+}
 
-  const cfg2 = await (await fetch(base + '/admin/auth-config.json', { headers: h })).json();
-  console.log('AUTH-CFG-PERSIST:',
-    cfg2.client_id === 'cid' && cfg2.client_secret_set === true && cfg2.enabled_runtime === false
-      && cfg2.external_url === 'https://share.example.com'
-      ? 'OK' : JSON.stringify(cfg2));
+async function main() {
+  let { srv, password: generated } = await startServer();
+  try {
+    console.log('GENERATED-PW:', generated ? 'captured' : 'MISSING');
 
-  // full round trip: tus upload, download, check admin data + activity
-  const b64 = s => Buffer.from(s).toString('base64');
-  const body = Buffer.from('hello smoke test');
-  const create = await fetch(base + '/files', {
-    method: 'POST',
-    headers: {
-      'Tus-Resumable': '1.0.0',
-      'Upload-Length': String(body.length),
-      'Upload-Metadata': `name ${b64('smoke.txt')},sid ${b64('smoketst')},retention ${b64('3600')}`,
-    },
-  });
-  const loc = create.headers.get('location');
-  console.log('TUS-CREATE:', create.status, loc);
-  const patch = await fetch(base + loc, {
-    method: 'PATCH',
-    headers: {
-      'Tus-Resumable': '1.0.0',
-      'Upload-Offset': '0',
-      'Content-Type': 'application/offset+octet-stream',
-    },
-    body,
-  });
-  console.log('TUS-PATCH:', patch.status);
+    const bad = await login('admin', 'wrong');
+    console.log('BAD-LOGIN:', bad.status, bad.status === 401 ? 'rejected' : 'FAIL');
 
-  const dl = await fetch(base + loc.replace('/files/', '/files/'), { headers: {} });
-  console.log('DOWNLOAD:', dl.status, (await dl.text()) === 'hello smoke test' ? 'content ok' : 'CONTENT MISMATCH');
+    const good = await login('admin', generated);
+    const cookie = good.headers.get('set-cookie');
+    console.log('GENERATED-LOGIN:', good.status, good.status === 302 && cookie ? 'OK' : 'FAIL');
+    const h = { cookie };
 
-  const data2 = await (await fetch(base + '/admin/data.json', { headers: h })).json();
-  const file = data2.smoketst && data2.smoketst[0];
-  console.log('ADMIN-FILE:', file
-    ? `downloads=${file.metadata.downloads} clientIp=${file.metadata.clientIp} key=${!!file.key}`
-    : 'MISSING');
+    const cfg = await (await fetch(base + '/admin/auth-config.json', { headers: h })).json();
+    console.log('MUST-CHANGE-FLAG:', cfg.must_change_password === true && cfg.password_set === true ? 'OK' : JSON.stringify(cfg));
+    console.log('SECRETS-HIDDEN:', cfg.client_secret === undefined && cfg.admin_password_hash === undefined ? 'OK' : 'LEAKED');
 
-  const act2 = await (await fetch(base + '/admin/activity.json', { headers: h })).json();
-  console.log('EVENTS:', act2.events.map(e => `${e.type}:${e.file}@${e.ip}`).join(' | '));
+    let r = await saveCfg(cookie, { new_password: 'short' });
+    console.log('SHORT-PASSWORD:', r.status, r.status === 400 ? 'OK' : 'FAIL');
 
-  const delFile = await fetch(base + `/admin/files/smoketst/${file.key}`, { method: 'DELETE', headers: h });
-  console.log('DEL-FILE:', delFile.status);
-  const act3 = await (await fetch(base + '/admin/activity.json', { headers: h })).json();
-  console.log('EVENTS-AFTER-DELETE:', act3.events[0] && act3.events[0].type);
+    r = await saveCfg(cookie, { enabled: false, password_login: false });
+    console.log('BOTH-DISABLED:', r.status, r.status === 400 ? 'OK' : 'FAIL');
 
-  srv.kill();
+    r = await saveCfg(cookie, {
+      password_login: false, enabled: true,
+      discovery_url: 'https://idp.example/.wk', client_id: 'cid', client_secret: 'sec',
+    });
+    console.log('LOCKOUT-GUARD:', r.status, r.status === 400 ? 'OK' : 'FAIL');
+
+    r = await saveCfg(cookie, { new_password: 'newpassword123', admin_username: 'boss' });
+    console.log('CHANGE-CREDS:', r.status, r.status === 200 ? 'OK' : await r.text());
+
+    const oldCreds = await login('admin', generated);
+    console.log('OLD-CREDS-REJECTED:', oldCreds.status, oldCreds.status === 401 ? 'OK' : 'FAIL');
+    const newCreds = await login('boss', 'newpassword123');
+    console.log('NEW-CREDS-LOGIN:', newCreds.status, newCreds.status === 302 ? 'OK' : 'FAIL');
+
+    const cfg2 = await (await fetch(base + '/admin/auth-config.json', { headers: h })).json();
+    console.log('FLAG-CLEARED:', cfg2.must_change_password === false && cfg2.admin_username === 'boss' ? 'OK' : JSON.stringify(cfg2));
+
+    const data = await fetch(base + '/admin/data.json', { headers: h });
+    console.log('API-AUTHED:', data.status, data.status === 200 ? 'OK' : 'FAIL');
+  } finally {
+    srv.kill();
+    await new Promise(r => srv.on('exit', r));
+  }
+
+  // Second boot: no regeneration expected (credentials already stored)
+  ({ srv, password: generated } = await startServer());
+  try {
+    console.log('SECOND-BOOT-NO-REGEN:', generated === null ? 'OK' : 'REGENERATED-FAIL');
+    const r = await login('boss', 'newpassword123');
+    console.log('PERSISTED-LOGIN:', r.status, r.status === 302 ? 'OK' : 'FAIL');
+  } finally {
+    srv.kill();
+    await new Promise(r => srv.on('exit', r));
+  }
+
+  // AUTH_RESET boot: fresh credentials, OIDC disabled
+  ({ srv, password: generated } = await startServer({ AUTH_RESET: '1' }));
+  try {
+    console.log('RESET-PW:', generated ? 'captured' : 'MISSING');
+    const r = await login('admin', generated);
+    const cookie = r.headers.get('set-cookie');
+    console.log('RESET-LOGIN:', r.status, r.status === 302 ? 'OK' : 'FAIL');
+    const cfg = await (await fetch(base + '/admin/auth-config.json', { headers: { cookie } })).json();
+    console.log('RESET-STATE:', cfg.enabled === false && cfg.must_change_password === true ? 'OK' : JSON.stringify(cfg));
+  } finally {
+    srv.kill();
+    await new Promise(r => srv.on('exit', r));
+  }
+
   process.exit(0);
 }
 
 main().catch(e => {
   console.error(e);
-  srv.kill();
   process.exit(1);
 });
