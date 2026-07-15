@@ -121,9 +121,17 @@
           | OpenID Connect login for this admin panel, via any OIDC provider (Authentik, Keycloak, Pocket ID, and others).
           | Username and password login is set with the ADMIN_USERNAME and ADMIN_PASSWORD environment variables.
         .alert.alert-warning(v-show='auth.restartNeeded') Saved settings differ from the running configuration. Restart the container to apply.
+        .form-group
+          label External URL
+          input.form-control(type='text', v-model='auth.external_url', spellcheck='false', placeholder='https://share.example.com')
+          small.text-muted Public base URL of this service. Used for the OIDC redirect URL below and for future external links.
         label.auth-check
           input(type='checkbox', v-model='auth.enabled')
           |  Enable OIDC login
+        p.text-muted.auth-redirect-hint
+          | Register the redirect URL
+          code  {{ redirectHint }}
+          |  with the provider.
         .form-group
           label Discovery URL
           input.form-control(type='text', v-model='auth.discovery_url', spellcheck='false', placeholder='https://auth.example.com/application/o/nyshare/.well-known/openid-configuration')
@@ -199,6 +207,7 @@
         baseURI: document.head.getElementsByTagName('base')[0].href,
         auth: {
           enabled: false,
+          external_url: '',
           discovery_url: '',
           client_id: '',
           client_secret: '',
@@ -236,6 +245,11 @@
           || s.files.some(f =>
             (f.metadata.name || '').toLowerCase().includes(q)
             || (f.metadata.clientIp || '').includes(q)));
+      },
+
+      redirectHint() {
+        const v = (this.auth.external_url || '').trim().replace(/\/+$/, '');
+        return (v || 'https://your-domain') + '/admin/oidc/callback';
       },
 
       fileCount() { return this.shares.reduce((s, x) => s + x.files.length, 0); },
@@ -320,6 +334,7 @@
           const data = await res.json();
           Object.assign(this.auth, {
             enabled: data.enabled,
+            external_url: data.external_url || '',
             discovery_url: data.discovery_url || '',
             client_id: data.client_id || '',
             client_secret: '',
@@ -345,6 +360,7 @@
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
               enabled: a.enabled,
+              external_url: a.external_url.trim().replace(/\/+$/, ''),
               discovery_url: a.discovery_url.trim(),
               client_id: a.client_id.trim(),
               client_secret: a.client_secret,

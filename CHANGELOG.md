@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- External URL setting in the Authentication section: the public base URL of the service, used for the OIDC redirect URL shown in the settings and available for future links
 - OpenID Connect login for the admin panel, configured from the new Authentication section on the admin page (any OIDC provider; settings stored in oauth.json in the data dir, restart to apply); the login page shows an OpenID Connect button next to (or instead of) the password form
 - Configurable admin session lifetime in the Authentication section
 - The admin panel can now run OIDC-only: it is enabled when a password or OIDC is configured

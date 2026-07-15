@@ -71,6 +71,7 @@ async function main() {
       client_id: 'cid',
       client_secret: 'sec',
       session_lifetime_days: 14,
+      external_url: 'https://share.example.com/',
     }),
   });
   console.log('AUTH-CFG-SAVE:', goodSave.status, JSON.stringify(await goodSave.json()));
@@ -78,6 +79,7 @@ async function main() {
   const cfg2 = await (await fetch(base + '/admin/auth-config.json', { headers: h })).json();
   console.log('AUTH-CFG-PERSIST:',
     cfg2.client_id === 'cid' && cfg2.client_secret_set === true && cfg2.enabled_runtime === false
+      && cfg2.external_url === 'https://share.example.com'
       ? 'OK' : JSON.stringify(cfg2));
 
   // full round trip: tus upload, download, check admin data + activity
