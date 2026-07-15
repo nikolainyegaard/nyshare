@@ -40,6 +40,16 @@ async function main() {
   const badBody = await badlogin.text();
   console.log('BADLOGIN:', badlogin.status, badBody.includes('Invalid credentials') ? 'rejected' : 'CHECK');
 
+  const pageRes = await fetch(base + '/admin/login');
+  const page = await pageRes.text();
+  console.log('LOGIN-PAGE:', pageRes.status,
+    page.includes('Sign in') ? 'password-form' : 'no-password-form',
+    page.includes('admin/oidc/login') ? 'oidc-visible' : 'oidc-hidden');
+
+  const oidcRes = await fetch(base + '/admin/oidc/login', { redirect: 'manual' });
+  const oidcBody = oidcRes.headers.get('location') || ((await oidcRes.text()).includes('sign-in failed') ? 'graceful-error' : 'CHECK');
+  console.log('OIDC-LOGIN:', oidcRes.status, oidcBody);
+
   // full round trip: tus upload, download, check admin data + activity
   const b64 = s => Buffer.from(s).toString('base64');
   const body = Buffer.from('hello smoke test');

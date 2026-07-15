@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- OpenID Connect login for the admin panel via OIDC_DISCOVERY_URL, OIDC_CLIENT_ID and OIDC_CLIENT_SECRET; the login page shows an OpenID Connect button next to (or instead of) the password form
+- The admin panel can now run OIDC-only: it is enabled when a password or OIDC is configured
 - Admin dashboard rebuilt from scratch: stat cards (active shares, files, storage, downloads served), searchable share list with expiry and uploader IP info, expandable per-file detail, and a recent activity feed
 - Activity log: uploads, downloads, archive downloads, expiries and deletions are recorded with client IP to `.activity.jsonl` in the data dir (capped at 1000 events) and shown on the admin page
 - Admin actions: delete a whole share or a single file, download files, open and copy share links directly from the dashboard
