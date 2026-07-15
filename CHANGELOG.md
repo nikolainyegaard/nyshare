@@ -25,10 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Resuming an upload into a locked bucket was not rejected; the lock check read a metadata field that was never written
 - Per-file size display used a wrong field name when an upload finished
 - Offline auto-resume could stop re-attaching after a manual retry
+- Simultaneous file expiries could be delayed by one cleanup cycle because the expiry scan modified the list it was iterating
 - Error page still showed PsiTransfer branding and used FontAwesome icon classes that no longer exist, rendering blank icons
 
 ### Changed
-- Admin login now uses constant-time credential comparison
+- Login page redesigned: centered card with app name, subtitle, username/password form, an "or continue with" divider and an OpenID Connect button; each section only shows when its method is configured
+- Admin login now uses constant-time credential comparison, regenerates the session at sign-in, and returns 401 on invalid credentials
 - Access log no longer records static asset requests
 - Admin bucket listing keeps file keys for password-protected shares so admin actions work on them; password hashes are still never sent to the browser
 - Logout now redirects to the configured base URL instead of hardcoded /
