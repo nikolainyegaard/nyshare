@@ -3,13 +3,11 @@ services:
     image: ghcr.io/nikolainyegaard/nyshare:latest
     container_name: nyshare
     environment:
-      # Admin panel at /admin. Enabled when a password or OIDC is configured.
+      # Admin panel at /admin. OIDC login is configured in the panel itself
+      # (Authentication section); the password here is also the fallback if
+      # the OIDC provider breaks.
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=changeme
-      # Optional OIDC login (Authentik, Keycloak, Pocket ID, ...):
-      # - OIDC_DISCOVERY_URL=https://auth.example.com/application/o/nyshare/.well-known/openid-configuration
-      # - OIDC_CLIENT_ID=
-      # - OIDC_CLIENT_SECRET=
       # trust the Caddy reverse proxy (private docker subnet) so admin/activity logs show real client IPs
       - PSITRANSFER_TRUST_PROXY=uniquelocal
     volumes:

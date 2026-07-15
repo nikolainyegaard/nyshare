@@ -111,6 +111,46 @@
             span.activity-sid(v-else) {{ ev.sid }}
           span.ip-chip(v-if='ev.ip') {{ ev.ip }}
           span.activity-time(:title='formatDate(ev.time)') {{ relTime(ev.time) }}
+
+    .panel
+      .panel-heading
+        strong Authentication
+        small.text-muted changes apply after restart
+      .panel-body.auth-settings
+        p.text-muted
+          | OpenID Connect login for this admin panel, via any OIDC provider (Authentik, Keycloak, Pocket ID, and others).
+          | Username and password login is set with the ADMIN_USERNAME and ADMIN_PASSWORD environment variables.
+        .alert.alert-warning(v-show='auth.restartNeeded') Saved settings differ from the running configuration. Restart the container to apply.
+        label.auth-check
+          input(type='checkbox', v-model='auth.enabled')
+          |  Enable OIDC login
+        .form-group
+          label Discovery URL
+          input.form-control(type='text', v-model='auth.discovery_url', spellcheck='false', placeholder='https://auth.example.com/application/o/nyshare/.well-known/openid-configuration')
+        .form-group
+          label Client ID
+          input.form-control(type='text', v-model='auth.client_id', spellcheck='false', placeholder='your-client-id')
+        .form-group
+          label Client secret
+          .auth-secret-row
+            input.form-control(
+              :type="auth.showSecret ? 'text' : 'password'",
+              v-model='auth.client_secret',
+              autocomplete='new-password',
+              spellcheck='false',
+              placeholder='leave blank to keep existing'
+            )
+            button.btn(@click='auth.showSecret = !auth.showSecret') {{ auth.showSecret ? 'Hide' : 'Show' }}
+          small.text-muted {{ auth.client_secret_set ? 'A client secret is saved.' : 'No client secret saved.' }}
+        .form-group
+          label Session lifetime (days)
+          input.form-control.auth-days(type='number', min='1', max='365', v-model.number='auth.session_lifetime_days')
+        .auth-actions
+          button.btn.btn-primary(@click='saveAuth') Save
+          small.text-muted {{ auth.status }}
+        p.text-muted.auth-lockout(v-show='!auth.password_login')
+          | Password login is off (no ADMIN_PASSWORD in the environment). If the OIDC provider breaks,
+          | set ADMIN_PASSWORD in docker-compose.yml and restart to get back in, then fix the settings here.
 </template>
 
 
@@ -157,6 +197,18 @@
         query: '',
         expanded: null,
         baseURI: document.head.getElementsByTagName('base')[0].href,
+        auth: {
+          enabled: false,
+          discovery_url: '',
+          client_id: '',
+          client_secret: '',
+          client_secret_set: false,
+          session_lifetime_days: 7,
+          password_login: true,
+          restartNeeded: false,
+          showSecret: false,
+          status: '',
+        },
       };
     },
 
@@ -193,6 +245,7 @@
 
     mounted() {
       this.refresh();
+      this.loadAuth();
       this._timer = setInterval(() => this.refresh(true), 30000);
     },
 
@@ -257,6 +310,59 @@
           await this.refresh(true);
         } catch (e) {
           this.error = 'Delete failed: ' + e.message;
+        }
+      },
+
+      async loadAuth() {
+        try {
+          const res = await fetch('admin/auth-config.json');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          Object.assign(this.auth, {
+            enabled: data.enabled,
+            discovery_url: data.discovery_url || '',
+            client_id: data.client_id || '',
+            client_secret: '',
+            client_secret_set: data.client_secret_set,
+            session_lifetime_days: data.session_lifetime_days || 7,
+            password_login: data.password_login,
+            restartNeeded: data.enabled !== data.enabled_runtime,
+          });
+        } catch (e) {
+          this.auth.status = 'Failed to load settings: ' + e.message;
+        }
+      },
+
+      async saveAuth() {
+        const a = this.auth;
+        if (a.enabled && (!a.discovery_url.trim() || !a.client_id.trim())) {
+          a.status = 'Discovery URL and client ID are required to enable OIDC';
+          return;
+        }
+        try {
+          const res = await fetch('admin/auth-config.json', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              enabled: a.enabled,
+              discovery_url: a.discovery_url.trim(),
+              client_id: a.client_id.trim(),
+              client_secret: a.client_secret,
+              session_lifetime_days: a.session_lifetime_days,
+            }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || `HTTP ${res.status}`);
+          }
+          if (a.client_secret) a.client_secret_set = true;
+          a.client_secret = '';
+          a.showSecret = false;
+          a.status = 'Saved. Restart the container to apply.';
+          // all auth changes need a restart, so always show the banner
+          a.restartNeeded = true;
+        } catch (e) {
+          a.status = 'Save failed: ' + e.message;
         }
       },
 

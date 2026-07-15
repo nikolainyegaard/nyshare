@@ -50,6 +50,36 @@ async function main() {
   const oidcBody = oidcRes.headers.get('location') || ((await oidcRes.text()).includes('sign-in failed') ? 'graceful-error' : 'CHECK');
   console.log('OIDC-LOGIN:', oidcRes.status, oidcBody);
 
+  // auth settings API
+  const cfgGet = await fetch(base + '/admin/auth-config.json', { headers: h });
+  const cfg = await cfgGet.json();
+  console.log('AUTH-CFG-GET:', cfgGet.status, cfg.client_secret === undefined ? 'secret not exposed' : 'SECRET LEAKED');
+
+  const badSave = await fetch(base + '/admin/auth-config.json', {
+    method: 'POST',
+    headers: { ...h, 'content-type': 'application/json' },
+    body: JSON.stringify({ enabled: true, discovery_url: '', client_id: '', client_secret: '' }),
+  });
+  console.log('AUTH-CFG-INVALID:', badSave.status, badSave.status === 400 ? 'OK' : 'FAIL');
+
+  const goodSave = await fetch(base + '/admin/auth-config.json', {
+    method: 'POST',
+    headers: { ...h, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      enabled: true,
+      discovery_url: 'https://idp.example/.well-known/openid-configuration',
+      client_id: 'cid',
+      client_secret: 'sec',
+      session_lifetime_days: 14,
+    }),
+  });
+  console.log('AUTH-CFG-SAVE:', goodSave.status, JSON.stringify(await goodSave.json()));
+
+  const cfg2 = await (await fetch(base + '/admin/auth-config.json', { headers: h })).json();
+  console.log('AUTH-CFG-PERSIST:',
+    cfg2.client_id === 'cid' && cfg2.client_secret_set === true && cfg2.enabled_runtime === false
+      ? 'OK' : JSON.stringify(cfg2));
+
   // full round trip: tus upload, download, check admin data + activity
   const b64 = s => Buffer.from(s).toString('base64');
   const body = Buffer.from('hello smoke test');
