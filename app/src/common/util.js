@@ -1,3 +1,14 @@
+export function humanFileSize(fileSizeInBytes) {
+  let i = -1;
+  const byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+  do {
+    fileSizeInBytes = fileSizeInBytes / 1024;
+    i++;
+  }
+  while (fileSizeInBytes > 1024);
+  return Math.max(fileSizeInBytes, 0.01).toFixed(2) + byteUnits[i];
+}
+
 export async function httpGet(url) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -32,7 +43,7 @@ export async function httpPost(url, data) {
           reject(e);
         }
       } else {
-        reject(new Error(`HTTP-GET error: ${ xhr.status } ${ xhr.statusText }`))
+        reject(new Error(`HTTP-POST error: ${ xhr.status } ${ xhr.statusText }`))
       }
     };
     xhr.send(JSON.stringify(data));

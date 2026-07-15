@@ -66,7 +66,7 @@
   import dragDrop from 'drag-drop';
   import { mapGetters, mapState } from 'vuex';
   import FileIcon from '../common/FileIcon.vue';
-  import { humanFileSize } from "./store/upload";
+  import { humanFileSize } from "../common/util";
 
   export default {
     name: 'Files',

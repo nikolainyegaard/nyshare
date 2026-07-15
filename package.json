@@ -16,7 +16,6 @@
     "archiver": "^7.0.1",
     "express-session": "^1.18.1",
     "axios": "^1.15.0",
-    "common-streams": "^1.4.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "@node-rs/argon2": "^2.0.2",

@@ -58,6 +58,8 @@
 
 
 <script>
+  import { humanFileSize } from './common/util';
+
   export default {
     name: 'app',
 
@@ -139,15 +141,7 @@
         });
       },
 
-      humanFileSize(fileSizeInBytes) {
-        let i = -1;
-        const byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
-        do {
-          fileSizeInBytes = fileSizeInBytes / 1024;
-          i++;
-        } while(fileSizeInBytes > 1024);
-        return Math.max(fileSizeInBytes, 0.00).toFixed(2) + byteUnits[i];
-      },
+      humanFileSize,
 
       formatDate(val) {
         if(!val) return val;

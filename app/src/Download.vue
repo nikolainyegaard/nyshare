@@ -81,6 +81,7 @@
   import FileIcon from './common/FileIcon.vue';
   import Clipboard from './common/Clipboard.vue';
   import PreviewModal from './Download/PreviewModal.vue';
+  import { humanFileSize } from './common/util';
 
   function getPreviewType(file, maxSize) {
     if(!file || !file.metadata) return false;
@@ -162,26 +163,13 @@
         file.downloaded = $event === 'copied';
       },
 
-      humanFileSize(fileSizeInBytes) {
-        let i = -1;
-        const byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
-        let size = fileSizeInBytes;
-        do {
-          size = size / 1024;
-          i++;
-        }
-        while(size > 1024);
-        return Math.max(size, 0.01).toFixed(2) + byteUnits[i];
-      },
+      humanFileSize,
 
       newSession() {
         document.location.href = this.$root.baseURI;
       },
 
-      isFinite(value) {
-        if(typeof value !== 'number') return false;
-        return !(value !== value || value === Infinity || value === -Infinity);
-      },
+      isFinite: Number.isFinite,
 
       fetchBucket() {
         const xhr = new XMLHttpRequest();

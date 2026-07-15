@@ -1,16 +1,5 @@
 import * as tus from "tus-js-client";
-import { v4 as uuid } from 'uuid';
-
-export function humanFileSize(fileSizeInBytes) {
-  let i = -1;
-  const byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
-  do {
-    fileSizeInBytes = fileSizeInBytes / 1024;
-    i++;
-  }
-  while (fileSizeInBytes > 1024);
-  return Math.max(fileSizeInBytes, 0.01).toFixed(2) + byteUnits[i];
-}
+import { humanFileSize } from '../../common/util';
 
 let onOnlineHandler = null;
 let onOnlineHandlerAttached = false;
@@ -142,11 +131,14 @@ export default {
       if (onOnlineHandler === null) {
         onOnlineHandler = function() {
           onOnlineHandlerAttached = false;
-          commit('ERROR', false, { root: true });
+          commit('ERROR', '', { root: true });
           dispatch('upload');
         }
       }
-      if (onOnlineHandlerAttached) window.removeEventListener('online', onOnlineHandler);
+      if (onOnlineHandlerAttached) {
+        window.removeEventListener('online', onOnlineHandler);
+        onOnlineHandlerAttached = false;
+      }
 
       // upload all files in parallel
       state.files.forEach(async file => {
@@ -261,7 +253,7 @@ export default {
               commit('UPDATE_FILE', {
                 file, data: {
                   uploaded: true,
-                  progress: { percentage: 100, humanFileSize: file.humanSize, bytesUploaded: file._File.size, speed: 0 }
+                  progress: { percentage: 100, humanSize: file.humanSize, bytesUploaded: file._File.size, speed: 0 }
                 }
               });
               if (state.files.every(f => f.uploaded)) {

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Archive downloads sent a misspelled `ContentType` header instead of `Content-Type`, so zip/tar.gz responses had no content type
+- One-time files could be skipped during cleanup after a "download all" because the bucket list was modified while being iterated
+- A failed post-download cleanup could crash the server via an unhandled promise rejection
+- Resuming an upload into a locked bucket was not rejected; the lock check read a metadata field that was never written
+- Per-file size display used a wrong field name when an upload finished
+- Offline auto-resume could stop re-attaching after a manual retry
+- Error page still showed PsiTransfer branding and used FontAwesome icon classes that no longer exist, rendering blank icons
+
+### Changed
+- Admin login now uses constant-time credential comparison
+- UI polish: subtle panel and modal shadows, green progress bars, modal fade-in with blurred backdrop, visible keyboard focus rings, softer corner rounding, alert accent border
+
+### Removed
+- Unused dependencies (`common-streams` backend, `uuid` frontend), leftover polyfill files and dead code
+
 ## [0.1.2] - 2026-06-03
 
 ### Changed

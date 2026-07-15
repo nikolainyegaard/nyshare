@@ -92,7 +92,7 @@
   import Settings from './Upload/Settings.vue';
   import Files from './Upload/Files.vue';
   import Clipboard from './common/Clipboard.vue'
-  import { humanFileSize } from "./Upload/store/upload";
+  import { humanFileSize } from "./common/util";
 
   export default {
     name: 'Upload',
