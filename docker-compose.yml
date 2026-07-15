@@ -5,6 +5,8 @@ services:
     environment:
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=changeme
+      # trust the Caddy reverse proxy (private docker subnet) so admin/activity logs show real client IPs
+      - PSITRANSFER_TRUST_PROXY=uniquelocal
     volumes:
       - ./data:/data
     networks:

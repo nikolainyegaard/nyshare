@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Admin dashboard rebuilt from scratch: stat cards (active shares, files, storage, downloads served), searchable share list with expiry and uploader IP info, expandable per-file detail, and a recent activity feed
+- Activity log: uploads, downloads, archive downloads, expiries and deletions are recorded with client IP to `.activity.jsonl` in the data dir (capped at 1000 events) and shown on the admin page
+- Admin actions: delete a whole share or a single file, download files, open and copy share links directly from the dashboard
+- Per-file download counter and uploader IP stored in file metadata
+- Admin page auto-refreshes every 30 seconds
+- `PSITRANSFER_TRUST_PROXY=uniquelocal` in docker-compose.yml so logs show real client IPs behind Caddy
+
 ### Fixed
 - Archive downloads sent a misspelled `ContentType` header instead of `Content-Type`, so zip/tar.gz responses had no content type
 - One-time files could be skipped during cleanup after a "download all" because the bucket list was modified while being iterated
@@ -18,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Admin login now uses constant-time credential comparison
+- Access log no longer records static asset requests
+- Admin bucket listing keeps file keys for password-protected shares so admin actions work on them; password hashes are still never sent to the browser
+- Logout now redirects to the configured base URL instead of hardcoded /
 - UI polish: subtle panel and modal shadows, green progress bars, modal fade-in with blurred backdrop, visible keyboard focus rings, softer corner rounding, alert accent border
 
 ### Removed
