@@ -36,78 +36,86 @@
         .skeleton(style='height: 21px; width: 56px')
         .skeleton(style='height: 11px; width: 90px; margin-top: 4px')
 
-    .panel.panel-scroll-x
-      .panel-heading
-        strong Shares
-        small(v-if='loaded') {{ filteredShares.length === shares.length ? countLabel(shares.length, 'share') : filteredShares.length + ' of ' + countLabel(shares.length, 'share') }}
+    section.shares-section
+      .section-head
+        h2.section-title Shares
+        small.section-count(v-if='loaded') {{ filteredShares.length === shares.length ? countLabel(shares.length, 'share') : filteredShares.length + ' of ' + countLabel(shares.length, 'share') }}
         input.input-search(
           type='search',
           placeholder='Filter by share ID, file name or IP',
-          v-model='query',
-          style='margin-left: auto; width: min(280px, 50%)'
+          v-model='query'
         )
-      .panel-body(v-if='!loaded')
-        .skeleton(v-for='n in 3', :key='n', style='height: 28px')
-      .panel-body(v-else-if='!filteredShares.length')
-        p.empty-state {{ shares.length ? 'No shares match the filter' : 'No active shares. Uploads appear here as they arrive.' }}
-      table.table(v-else)
-        thead
-          tr
-            th Share
-            th Created
-            th Expires
-            th.text-right Files
-            th.text-right Size
-            th.text-right Downloads
-            th.text-right Actions
-        tbody(
+      .share-list(v-if='!loaded')
+        .skeleton(v-for='n in 4', :key='n', style='height: 30px')
+      p.empty-state(v-else-if='!filteredShares.length') {{ shares.length ? 'No shares match the filter' : 'No active shares. Uploads appear here as they arrive.' }}
+      .share-list(v-else)
+        .share-cols.share-list-head
+          span.label-caps Share
+          span.label-caps Created
+          span.label-caps Expires
+          span.label-caps.num Files
+          span.label-caps.num Size
+          span.label-caps.num Downloads
+          span.label-caps Uploader
+          span
+        .share-cols.share-list-row(
           v-for='share in filteredShares',
           :key='share.sid',
-          :class="{ expanded: expanded === share.sid }"
+          :class="{ partial: share.partial }",
+          @click='openShare($event, share.sid)'
         )
-          tr.share-row(@click='toggle(share.sid)')
-            td
-              span.share-sid {{ share.sid }}
-              span.share-badges
-                span.share-key(v-if='share.password', title='Password protected')
-                  icon(name='fa-key')
-                span.badge.badge-warn(v-if='share.partial') uploading
-            td(:title='formatDate(share.created)') {{ relTime(share.created) }}
-            td
-              span.badge.badge-purple(v-if='share.oneTime') one-time
-              template(v-else) {{ relTime(share.expires) }}
-            td.text-right {{ share.files.length }}
-            td.text-right {{ humanFileSize(share.size) }}
-            td.text-right(:class="{ 'text-muted': !share.downloads }") {{ share.downloads }}
-            td.actions
-              a.btn(:href='share.sid', target='_blank', title='Open download page', @click.stop)
-                icon(name='fa-external-link-alt')
-              clipboard.btn(:value='shareLink(share.sid)', title='Copy share link')
-                template(v-slot:default='{ state }')
-                  icon(:name="state === 'copied' ? 'fa-check' : 'fa-copy'")
-              button.btn.btn-danger(@click.stop='deleteShare(share)', title='Delete share')
+          span.share-id-cell
+            span.share-sid {{ share.sid }}
+            span.share-key(v-if='share.password', title='Password protected')
+              icon(name='fa-key')
+            span.badge.badge-warn(v-if='share.partial') uploading
+            span.badge.badge-purple(v-if='share.oneTime') one-time
+          span.sl-cell(:title='formatDate(share.created)') {{ relTime(share.created) }}
+          span.sl-cell(v-if='share.oneTime') on download
+          span.sl-cell(v-else, :title='formatDate(share.expires)') {{ relTime(share.expires) }}
+          span.sl-cell.num {{ share.files.length }}
+          span.sl-cell.num {{ humanFileSize(share.size) }}
+          span.sl-cell.num(
+            :class="{ tzero: !share.downloads }",
+            :title="share.lastDownload ? 'Last download: ' + formatDate(share.lastDownload) : 'Never downloaded'"
+          ) {{ share.downloads }}
+          span.sl-cell
+            span.ip-chip(v-if='share.ip') {{ share.ip }}
+            span.tzero(v-else) unknown
+          span.sl-actions
+            a.btn(:href='share.sid', target='_blank', title='Open download page')
+              icon(name='fa-external-link-alt')
+            clipboard.btn(:value='shareLink(share.sid)', title='Copy share link')
+              template(v-slot:default='{ state }')
+                icon(:name="state === 'copied' ? 'fa-check' : 'fa-copy'")
+            button.btn.btn-danger(@click='deleteShare(share)', title='Delete share')
+              icon(name='fa-trash')
+
+    modal.share-modal(v-if='detailShare', @close='detailSid = null', :has-header='true')
+      template(v-slot:header)
+        span.share-sid {{ detailShare.sid }}
+        small.text-muted  {{ countLabel(detailShare.files.length, 'file') }}, {{ humanFileSize(detailShare.size) }}
+      template(v-slot:body)
+        ul.share-files
+          li(v-for='file in detailShare.files', :key='file.key')
+            .sf-main
+              strong.sf-name {{ file.metadata.name }}
+              small.text-muted(v-if='file.metadata.comment') {{ file.metadata.comment }}
+            span.badge.badge-warn(v-if='file.isPartial') uploading
+            span.sf-cell {{ humanFileSize(file.size) }}
+            span.sf-cell(:title="file.metadata.lastDownload ? 'Last download: ' + formatDate(+file.metadata.lastDownload) : 'Never downloaded'")
+              | {{ countLabel(+file.metadata.downloads || 0, 'download') }}
+            span.ip-chip(v-if='file.metadata.clientIp', title='Uploaded from') {{ file.metadata.clientIp }}
+            span.sf-actions
+              a.btn(
+                :href='fileLink(detailShare.sid, file.key)',
+                :download='file.metadata.name',
+                title='Download file',
+                @click='confirmOneTimeDownload($event, file)'
+              )
+                icon(name='fa-download')
+              button.btn.btn-danger(@click='deleteFile(detailShare, file)', title='Delete file')
                 icon(name='fa-trash')
-          template(v-if='expanded === share.sid')
-            tr.file-row(v-for='file in share.files', :key='file.key')
-              td(colspan='3')
-                span.file-name {{ file.metadata.name }}
-                small.text-muted(v-if='file.metadata.comment')  {{ file.metadata.comment }}
-                span.ip-chip(v-if='file.metadata.clientIp', title='Uploaded from', style='margin-left: 8px') {{ file.metadata.clientIp }}
-              td.text-right
-                span.badge.badge-warn(v-if='file.isPartial') uploading
-              td.text-right {{ humanFileSize(file.size) }}
-              td.text-right(:title="file.metadata.lastDownload ? 'Last download: ' + formatDate(+file.metadata.lastDownload) : 'Never downloaded'")
-                | {{ +file.metadata.downloads || 0 }}
-              td.actions
-                a.btn(
-                  :href='fileLink(share.sid, file.key)',
-                  :download='file.metadata.name',
-                  title='Download file',
-                  @click='confirmOneTimeDownload($event, file)'
-                )
-                  icon(name='fa-download')
-                button.btn.btn-danger(@click='deleteFile(share, file)', title='Delete file')
-                  icon(name='fa-trash')
 
     .panel
       .panel-heading
@@ -225,6 +233,7 @@
 
 <script>
   import Clipboard from './common/Clipboard.vue';
+  import Modal from './common/Modal.vue';
   import { humanFileSize } from './common/util';
 
   const RTF = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
@@ -281,7 +290,7 @@
 
   export default {
     name: 'Admin',
-    components: { Clipboard },
+    components: { Clipboard, Modal },
 
     data() {
       return {
@@ -292,7 +301,7 @@
         loading: false,
         loaded: false,
         query: '',
-        expanded: null,
+        detailSid: null,
         baseURI: document.head.getElementsByTagName('base')[0].href,
         confirm: { title: '', message: '', action: 'Confirm', danger: false, resolve: null },
         auth: {
@@ -328,7 +337,13 @@
             : Math.min(...files.map(f => +f.metadata.createdAt + (+f.metadata.retention * 1000))),
           password: files.some(f => f.metadata._password),
           partial: files.some(f => f.isPartial),
+          ip: (files.find(f => f.metadata.clientIp) || { metadata: {} }).metadata.clientIp || '',
+          lastDownload: Math.max(0, ...files.map(f => +f.metadata.lastDownload || 0)),
         })).sort((a, b) => b.created - a.created);
+      },
+
+      detailShare() {
+        return this.shares.find(s => s.sid === this.detailSid) || null;
       },
 
       filteredShares() {
@@ -382,8 +397,10 @@
         this.confirm.resolve = null;
       },
 
-      toggle(sid) {
-        this.expanded = this.expanded === sid ? null : sid;
+      openShare(ev, sid) {
+        // whole-card click, but inner buttons and links keep their own action
+        if (ev.target.closest('button, a')) return;
+        this.detailSid = sid;
       },
 
       shareLink(sid) {

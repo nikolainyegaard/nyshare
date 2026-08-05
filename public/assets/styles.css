@@ -938,27 +938,115 @@ svg.fa-icon[style*="animation"], .spin svg.fa-icon { animation: spin 0.8s linear
 
 .stat-value.tzero { color: var(--muted); opacity: .45; }
 
-/* Shares table */
-.share-row { cursor: pointer; }
-@media (hover: hover) {
-  .share-row:hover > td { background: var(--raised); }
+/* Shares: section head + card grid */
+.section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+.section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
 }
-.share-sid { font-weight: 600; }
-.share-badges { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: 1px; }
-.share-key { color: var(--muted); font-size: 11px; }
-
-tbody.expanded .share-row > td { background: var(--hdr); }
-
-.file-row td { font-size: 11px; color: var(--text-dim); background: var(--nav); }
-.file-row .file-name { color: var(--text); font-weight: 600; }
-
-.actions { white-space: nowrap; text-align: right; }
-.actions .btn { margin-left: 4px; padding: 4px 8px; font-size: 12px; color: var(--text-dim); background: transparent; border: 1px solid var(--border); }
-@media (hover: hover) {
-  .actions .btn:hover:not(:disabled) { background: var(--raised); color: var(--text); }
-  .actions .btn-danger:hover:not(:disabled) { background: var(--red-bg-h); }
+.section-title::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
 }
-.actions .btn-danger { color: var(--red); border-color: var(--red); }
+
+.section-count { font-size: 11px; color: var(--muted); }
+.section-head .input-search { margin-left: auto; width: min(280px, 50%); }
+
+/* Shares as dense ledger rows: fixed columns so values align for
+   comparison down the list */
+.share-list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.share-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 86px 96px 48px 76px 40px 116px 100px;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 8px;
+}
+
+.share-list-head { border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 2px; }
+.share-cols .num { text-align: right; }
+
+.share-list-row {
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  min-height: 30px;
+}
+@media (hover: hover) {
+  .share-list-row:hover { background: var(--raised); }
+}
+
+/* Uploading shares tint the whole row, like event-kind rows */
+.share-list-row.partial { background: color-mix(in srgb, var(--yellow) 8%, transparent); }
+@media (hover: hover) {
+  .share-list-row.partial:hover { background: color-mix(in srgb, var(--yellow) 16%, transparent); }
+}
+
+.share-id-cell { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.share-sid { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-key { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+
+.sl-cell { color: var(--text-dim); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sl-cell.num { font-weight: 600; }
+.tzero { color: var(--muted); opacity: .45; }
+
+.sl-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.sl-actions .btn { padding: 4px 8px; font-size: 12px; color: var(--text-dim); background: transparent; border: 1px solid var(--border); }
+.sl-actions .btn-danger { color: var(--red); border-color: var(--red); }
+@media (hover: hover) {
+  .sl-actions .btn:hover:not(:disabled) { background: var(--raised); color: var(--text); }
+  .sl-actions .btn-danger:hover:not(:disabled) { background: var(--red-bg-h); }
+}
+
+@media (max-width: 800px) {
+  /* drop Created and Uploader; the modal still has both */
+  .share-cols { grid-template-columns: minmax(0, 1.4fr) 96px 48px 76px 40px 100px; }
+  .share-cols > :nth-child(2), .share-cols > :nth-child(7) { display: none; }
+}
+
+/* Share detail modal: dense hairline-separated file rows */
+.share-files { list-style: none; }
+.share-files li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 2px;
+  font-size: 12px;
+}
+.share-files li + li { border-top: 1px solid rgba(255,255,255,0.06); }
+.sf-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.sf-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-main small { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-cell { color: var(--text-dim); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.sf-actions { display: flex; gap: 4px; }
+.sf-actions .btn { padding: 4px 8px; font-size: 12px; color: var(--text-dim); background: transparent; border: 1px solid var(--border); }
+.sf-actions .btn-danger { color: var(--red); border-color: var(--red); }
+@media (hover: hover) {
+  .sf-actions .btn:hover:not(:disabled) { background: var(--raised); color: var(--text); }
+  .sf-actions .btn-danger:hover:not(:disabled) { background: var(--red-bg-h); }
+}
+
+@media (max-width: 640px) {
+  .section-head { flex-wrap: wrap; }
+  .section-head .input-search { width: 100%; margin-left: 0; order: 9; }
+}
 
 /* Activity feed: dense rows tinted by event kind */
 .activity-feed {

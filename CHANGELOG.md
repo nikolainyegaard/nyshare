@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Complete visual redesign of every page (upload, download, admin, login, error): dark monospace instrument-panel look with self-hosted JetBrains Mono, an ambient accent glow and a sticky translucent top bar
-- Admin dashboard rebuilt: ledger-style stat strip, panel headers with live counts, activity feed rows tinted by event type, toggle switches in the Authentication section, and in-page confirmation dialogs instead of browser confirm prompts
+- Admin dashboard rebuilt: ledger-style stat strip, shares as a dense aligned-column list (created, expiry, size, downloads, uploader IP) with a file detail modal instead of expandable table rows, activity feed rows tinted by event type, toggle switches in the Authentication section, and in-page confirmation dialogs instead of browser confirm prompts
 - Admin panels show loading placeholders until the first data arrives
 
 ### Added
