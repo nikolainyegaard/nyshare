@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin panels show loading placeholders until the first data arrives
 
 ### Added
+- Admin audit log: logins, failed logins, OIDC sign-ins and failures, logouts, settings changes (changed field names only, never values), admin share and file deletions, AUTH_RESET use and credential generation are recorded with actor, client IP and user agent to `.audit.jsonl` in the data dir (capped at 1000 events) and shown in a new Audit log panel on the admin page
 - Admin credentials are generated on first launch and printed to the container output; after signing in, a prompt asks for a new password. ADMIN_USERNAME and ADMIN_PASSWORD env vars are gone; username and password are managed in the Authentication section and stored hashed
 - Password login can be disabled for OIDC-only setups; saving validates that at least one login method stays enabled, and password login can only be turned off while OIDC is active
 - AUTH_RESET=1 env var: on next launch, disables OIDC, regenerates admin credentials and prints them to the container output (the lockout hatch)

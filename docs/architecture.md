@@ -19,7 +19,9 @@ nyshare/
 │   ├── db.js             in-memory bucket index over the stored .json metadata
 │   ├── store.js          file storage in the upload dir
 │   ├── tusboy/           vendored tus resumable-upload protocol handler
-│   ├── activityLog.js    admin event feed, .activity.jsonl in the upload dir
+│   ├── jsonlLog.js       append-only JSONL log factory (activity and audit logs)
+│   ├── activityLog.js    share activity feed, .activity.jsonl in the upload dir
+│   ├── auditLog.js       admin audit trail, .audit.jsonl in the upload dir
 │   ├── oidc.js           admin auth: oauth.json store, credential generation, OIDC code flow
 │   ├── passwordHash.js   argon2 hash and verify helpers
 │   ├── eventBus.js       process-wide event emitter (plugins, activity log)
@@ -87,10 +89,11 @@ Mostly upstream, plus fork additions for the admin dashboard. All paths are rela
 | POST | `/admin/auth-config.json` | Save auth settings to oauth.json (OIDC changes need a restart) |
 | GET | `/admin/data.json` | Admin bucket listing (session auth) |
 | GET | `/admin/activity.json` | Last 200 activity events, newest first (session auth) |
+| GET | `/admin/audit.json` | Last 200 audit events (logins, settings changes, admin actions), newest first (session auth) |
 | DELETE | `/admin/files/:sid` | Delete a whole share (session auth) |
 | DELETE | `/admin/files/:sid/:key` | Delete a single file (session auth) |
 
-Admin session auth: `/admin/data.json`, `/admin/activity.json`, `/admin/auth-config.json`, and the DELETE routes share an `adminApi` middleware that 401s without `req.session.adminAuthenticated`.
+Admin session auth: `/admin/data.json`, `/admin/activity.json`, `/admin/audit.json`, `/admin/auth-config.json`, and the DELETE routes share an `adminApi` middleware that 401s without `req.session.adminAuthenticated`.
 
 ## Tests
 

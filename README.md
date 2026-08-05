@@ -12,6 +12,7 @@ Drop files on the page, get a short share link, send it. Files expire on a sched
 - Optional password protection per share
 - Download all as zip or tar.gz; QR code, mailto and copy buttons for sharing
 - Admin dashboard at `/admin`: storage stats, active shares with uploader IPs and download counts, per-file and per-share delete and download, live activity feed
+- Audit log: logins, failed logins, logouts, settings changes and admin deletions recorded with client IP and user agent, shown on the admin page
 - Admin login via username/password and/or any OpenID Connect provider
 - Dark UI, image previews, text file previews
 

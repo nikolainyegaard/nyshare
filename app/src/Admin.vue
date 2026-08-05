@@ -131,6 +131,25 @@
 
     .panel
       .panel-heading
+        strong Audit log
+        small(v-if='loaded && auditEvents.length') {{ countLabel(auditEvents.length, 'event') }}
+        small(style='margin-left: auto') logins, settings and admin actions
+      .panel-body(v-if='!loaded')
+        .skeleton(v-for='n in 3', :key='n', style='height: 22px')
+      .panel-body(v-else-if='!auditEvents.length')
+        p.empty-state No audit events yet. Logins, failed logins and settings changes appear here.
+      ul.activity-feed(v-else)
+        li(v-for='(ev, i) in auditEvents', :key='ev.time + "-" + i', :class='"audit-" + ev.type', :title='ev.ua')
+          span.activity-icon
+            icon(:name='auditIcon(ev.type)')
+          span.activity-desc
+            strong {{ ev.user || 'system' }}
+            |  {{ auditText(ev) }}
+          span.ip-chip(v-if='ev.ip') {{ ev.ip }}
+          span.activity-time(:title='formatDate(ev.time)') {{ relTime(ev.time) }}
+
+    .panel
+      .panel-heading
         strong Authentication
         small(style='margin-left: auto') OIDC changes apply after restart
       .panel-body.auth-settings
@@ -234,6 +253,32 @@
     deleted: 'fa-trash',
   };
 
+  const AUDIT_ICONS = {
+    login: 'fa-sign-in-alt',
+    oidc_login: 'fa-sign-in-alt',
+    logout: 'fa-sign-in-alt',
+    login_failed: 'fa-exclamation-triangle',
+    oidc_failed: 'fa-exclamation-triangle',
+    settings_changed: 'fa-key',
+    share_deleted: 'fa-trash',
+    file_deleted: 'fa-trash',
+    auth_reset: 'fa-history',
+    credentials_generated: 'fa-history',
+  };
+
+  const AUDIT_TEXT = {
+    login: () => 'signed in with password',
+    login_failed: () => 'failed password login',
+    oidc_login: () => 'signed in with OpenID Connect',
+    oidc_failed: ev => `OpenID Connect sign-in failed${ ev.error ? ': ' + ev.error : '' }`,
+    logout: () => 'signed out',
+    settings_changed: ev => `changed settings: ${ (ev.changed || []).join(', ') }`,
+    share_deleted: ev => `deleted share ${ ev.sid } (${ ev.files } file${ ev.files === 1 ? '' : 's' })`,
+    file_deleted: ev => `deleted ${ ev.file } from share ${ ev.sid }`,
+    auth_reset: () => 'AUTH_RESET: OIDC disabled, admin credentials regenerated',
+    credentials_generated: () => 'admin credentials generated (first launch)',
+  };
+
   export default {
     name: 'Admin',
     components: { Clipboard },
@@ -242,6 +287,7 @@
       return {
         db: {},
         events: [],
+        auditEvents: [],
         error: '',
         loading: false,
         loaded: false,
@@ -351,19 +397,21 @@
       async refresh(silent) {
         if (!silent) this.loading = true;
         try {
-          const [dataRes, actRes] = await Promise.all([
+          const [dataRes, actRes, auditRes] = await Promise.all([
             fetch('admin/data.json'),
             fetch('admin/activity.json'),
+            fetch('admin/audit.json'),
           ]);
-          if (dataRes.status === 401 || actRes.status === 401) {
+          if (dataRes.status === 401 || actRes.status === 401 || auditRes.status === 401) {
             window.location.href = 'admin/login';
             return;
           }
-          if (!dataRes.ok || !actRes.ok) {
-            throw new Error(`HTTP ${dataRes.ok ? actRes.status : dataRes.status}`);
+          if (!dataRes.ok || !actRes.ok || !auditRes.ok) {
+            throw new Error(`HTTP ${[dataRes, actRes, auditRes].find(r => !r.ok).status}`);
           }
           this.db = await dataRes.json();
           this.events = (await actRes.json()).events;
+          this.auditEvents = (await auditRes.json()).events;
           this.error = '';
           this.loaded = true;
         } catch (e) {
@@ -509,6 +557,14 @@
 
       eventIcon(type) {
         return EVENT_ICONS[type] || 'fa-history';
+      },
+
+      auditIcon(type) {
+        return AUDIT_ICONS[type] || 'fa-history';
+      },
+
+      auditText(ev) {
+        return AUDIT_TEXT[ev.type] ? AUDIT_TEXT[ev.type](ev) : ev.type;
       },
 
       formatDate(val) {

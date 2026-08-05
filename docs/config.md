@@ -25,6 +25,7 @@ data/
   <share-id>/         one directory per share: files plus their .json metadata
   .secret_key         session signing key, created automatically
   .activity.jsonl     admin activity log, capped at 1000 events
+  .audit.jsonl        admin audit log (logins, settings changes, admin actions), capped at 1000 events
   oauth.json          admin auth settings, created on first save from the admin panel
 ```
 

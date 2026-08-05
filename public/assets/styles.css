@@ -987,6 +987,11 @@ tbody.expanded .share-row > td { background: var(--hdr); }
 .activity-expired  { --kind: var(--yellow); }
 .activity-deleted  { --kind: var(--red); }
 
+/* Audit rows: routine events stay quiet, failures and resets carry color */
+.audit-login_failed, .audit-oidc_failed { --kind: var(--red); }
+.audit-share_deleted, .audit-file_deleted { --kind: var(--red); }
+.audit-auth_reset, .audit-credentials_generated { --kind: var(--yellow); }
+
 .activity-icon { display: inline-flex; color: var(--kind, var(--muted)); font-size: 13px; flex-shrink: 0; }
 
 .activity-desc {

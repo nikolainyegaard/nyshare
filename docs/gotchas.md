@@ -14,9 +14,11 @@ OIDC is configured from the admin panel and stored in `oauth.json` in the upload
 
 The upstream `adminPass` key in config.js is dead: nothing reads it anymore, admin access is oauth.json-based.
 
-## Activity log
+## Activity log and audit log
 
-Admin activity events (upload, download, archive, expired, deleted, each with client IP) are appended to `.activity.jsonl` in the upload dir, capped to the newest 1000 entries at startup (`lib/activityLog.js`). Events flow through the existing eventBus; a new event type just needs an `eventBus.on` subscription in `lib/endpoints.js` and a verb/icon entry in `Admin.vue`.
+Admin activity events (upload, download, archive, expired, deleted, each with client IP) are appended to `.activity.jsonl` in the upload dir, capped to the newest 1000 entries at startup. Events flow through the existing eventBus; a new event type just needs an `eventBus.on` subscription in `lib/endpoints.js` and a verb/icon entry in `Admin.vue`.
+
+The audit log (`.audit.jsonl`, same mechanics via the shared `lib/jsonlLog.js` factory) is deliberately a separate file so bulk share traffic can never push security events out of the cap. Entries carry actor, client IP and user agent via the `audit(req, type, data)` helper in `lib/endpoints.js`; startup events (AUTH_RESET, credential generation) have no request and log without them. Settings changes log changed field names only, never values: the client secret and password must not land in the log. A new audit event type needs the `audit()` call, plus a text/icon entry (and optionally a tint class) in `Admin.vue`. The portable implementation guide is `admin-audit-logging.md` in the claude-files repo.
 
 ## Visual design comes from the design bible
 
