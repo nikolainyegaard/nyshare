@@ -27,8 +27,8 @@ nyshare/
 ├── plugins/              webhook plugins (file-uploaded, file-downloaded)
 ├── lang/                 translation modules (en.js, de.js, fr.js, ...)
 ├── public/
-│   ├── app/              Vite build output (gitignored, generated at build time)
-│   ├── assets/           favicons, global styles.css
+│   ├── app/              Vite build output (currently tracked; the Docker build regenerates it)
+│   ├── assets/           favicons, global styles.css, fonts/ (self-hosted JetBrains Mono)
 │   ├── pug/              page shells: upload, download, admin, login, error + partials/
 │   └── robots.txt
 ├── app/                  frontend source (own package.json and lock file)
@@ -62,6 +62,7 @@ nyshare/
 | File upload protocol | tus.io | Resumable uploads, built into upstream |
 | Password hashing | @node-rs/argon2 | Admin credentials and share passwords |
 | Container base | node:24-alpine | Small image; tzdata added for correct log timestamps |
+| Visual design | archivists-instrument | From the private design-bible repo (`styles/archivists-instrument`); tokens and recipes live in `public/assets/styles.css` |
 
 ## Backend API
 

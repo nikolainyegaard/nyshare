@@ -4,11 +4,11 @@
       h1 NyShare
         span.topbar-tag Admin
       .topbar-actions
-        button.btn.btn-primary(@click='refresh()', :disabled='loading', title='Refresh')
+        button.btn.btn-sm(@click='refresh()', :disabled='loading')
           icon.fa-fw(name='fa-sync-alt', :animation="loading ? 'spin' : undefined")
           |  Refresh
         form(method='post', action='admin/logout', style='display:contents')
-          button.btn(type='submit') Log out
+          button.btn.btn-sm(type='submit') Log out
 
     .alert.alert-danger(v-show='error')
       strong
@@ -18,30 +18,39 @@
     .alert.alert-warning(v-show='auth.must_change_password')
       | You signed in with a generated password. Set a new one in the Authentication panel below.
 
-    .stat-grid
-      .stat-card
-        .stat-value {{ shares.length }}
+    .stat-strip(v-if='loaded')
+      .stat-seg
+        .stat-value(:class="{ tzero: !shares.length }") {{ shares.length }}
         .stat-label Active shares
-      .stat-card
-        .stat-value {{ fileCount }}
+      .stat-seg
+        .stat-value(:class="{ tzero: !fileCount }") {{ fileCount }}
         .stat-label Files
-      .stat-card
-        .stat-value {{ humanFileSize(totalSize) }}
+      .stat-seg
+        .stat-value(:class="{ tzero: !totalSize }") {{ humanFileSize(totalSize) }}
         .stat-label Storage used
-      .stat-card
-        .stat-value {{ totalDownloads }}
+      .stat-seg
+        .stat-value(:class="{ tzero: !totalDownloads }") {{ totalDownloads }}
         .stat-label Downloads served
+    .stat-strip(v-else)
+      .stat-seg(v-for='n in 4', :key='n')
+        .skeleton(style='height: 21px; width: 56px')
+        .skeleton(style='height: 11px; width: 90px; margin-top: 4px')
 
-    .panel
+    .panel.panel-scroll-x
       .panel-heading
         strong Shares
-        input.form-control.admin-search(
+        small(v-if='loaded') {{ filteredShares.length === shares.length ? countLabel(shares.length, 'share') : filteredShares.length + ' of ' + countLabel(shares.length, 'share') }}
+        input.input-search(
           type='search',
           placeholder='Filter by share ID, file name or IP',
-          v-model='query'
+          v-model='query',
+          style='margin-left: auto; width: min(280px, 50%)'
         )
-      p.empty-state(v-if='!filteredShares.length') {{ shares.length ? 'No shares match the filter' : 'No active shares' }}
-      table.table.shares-table(v-else)
+      .panel-body(v-if='!loaded')
+        .skeleton(v-for='n in 3', :key='n', style='height: 28px')
+      .panel-body(v-else-if='!filteredShares.length')
+        p.empty-state {{ shares.length ? 'No shares match the filter' : 'No active shares. Uploads appear here as they arrive.' }}
+      table.table(v-else)
         thead
           tr
             th Share
@@ -58,55 +67,60 @@
         )
           tr.share-row(@click='toggle(share.sid)')
             td
-              strong.share-sid {{ share.sid }}
-              span.badge.badge-dim(v-if='share.password', title='Password protected')
-                icon(name='fa-key')
-              span.badge.badge-info(v-if='share.partial') uploading
+              span.share-sid {{ share.sid }}
+              span.share-badges
+                span.share-key(v-if='share.password', title='Password protected')
+                  icon(name='fa-key')
+                span.badge.badge-warn(v-if='share.partial') uploading
             td(:title='formatDate(share.created)') {{ relTime(share.created) }}
             td
-              span.badge.badge-warn(v-if='share.oneTime') one-time
+              span.badge.badge-purple(v-if='share.oneTime') one-time
               template(v-else) {{ relTime(share.expires) }}
             td.text-right {{ share.files.length }}
             td.text-right {{ humanFileSize(share.size) }}
-            td.text-right {{ share.downloads }}
-            td.text-right.actions
-              a.btn.btn-sm(:href='share.sid', target='_blank', title='Open download page', @click.stop)
+            td.text-right(:class="{ 'text-muted': !share.downloads }") {{ share.downloads }}
+            td.actions
+              a.btn(:href='share.sid', target='_blank', title='Open download page', @click.stop)
                 icon(name='fa-external-link-alt')
-              clipboard.btn.btn-sm(:value='shareLink(share.sid)', title='Copy share link')
+              clipboard.btn(:value='shareLink(share.sid)', title='Copy share link')
                 template(v-slot:default='{ state }')
                   icon(:name="state === 'copied' ? 'fa-check' : 'fa-copy'")
-              button.btn.btn-sm.btn-danger(@click.stop='deleteShare(share)', title='Delete share')
+              button.btn.btn-danger(@click.stop='deleteShare(share)', title='Delete share')
                 icon(name='fa-trash')
           template(v-if='expanded === share.sid')
             tr.file-row(v-for='file in share.files', :key='file.key')
               td(colspan='3')
                 span.file-name {{ file.metadata.name }}
                 small.text-muted(v-if='file.metadata.comment')  {{ file.metadata.comment }}
-                span.ip-chip(v-if='file.metadata.clientIp', title='Uploaded from') {{ file.metadata.clientIp }}
+                span.ip-chip(v-if='file.metadata.clientIp', title='Uploaded from', style='margin-left: 8px') {{ file.metadata.clientIp }}
               td.text-right
-                span.badge.badge-info(v-if='file.isPartial') uploading
+                span.badge.badge-warn(v-if='file.isPartial') uploading
               td.text-right {{ humanFileSize(file.size) }}
               td.text-right(:title="file.metadata.lastDownload ? 'Last download: ' + formatDate(+file.metadata.lastDownload) : 'Never downloaded'")
                 | {{ +file.metadata.downloads || 0 }}
-              td.text-right.actions
-                a.btn.btn-sm(
+              td.actions
+                a.btn(
                   :href='fileLink(share.sid, file.key)',
                   :download='file.metadata.name',
                   title='Download file',
                   @click='confirmOneTimeDownload($event, file)'
                 )
                   icon(name='fa-download')
-                button.btn.btn-sm.btn-danger(@click='deleteFile(share, file)', title='Delete file')
+                button.btn.btn-danger(@click='deleteFile(share, file)', title='Delete file')
                   icon(name='fa-trash')
 
     .panel
       .panel-heading
         strong Recent activity
-        small.text-muted refreshes every 30s
-      p.empty-state(v-if='!events.length') No activity yet
+        small(v-if='loaded && events.length') {{ countLabel(events.length, 'event') }}
+        small(style='margin-left: auto') refreshes every 30s
+      .panel-body(v-if='!loaded')
+        .skeleton(v-for='n in 4', :key='n', style='height: 22px')
+      .panel-body(v-else-if='!events.length')
+        p.empty-state No activity yet. Uploads and downloads will show up here.
       ul.activity-feed(v-else)
-        li(v-for='(ev, i) in events', :key='ev.time + "-" + i')
-          span.activity-icon(:class='"activity-" + ev.type')
+        li(v-for='(ev, i) in events', :key='ev.time + "-" + i', :class='"activity-" + ev.type')
+          span.activity-icon
             icon(:name='eventIcon(ev.type)')
           span.activity-desc
             | {{ eventText(ev) }}
@@ -118,30 +132,38 @@
     .panel
       .panel-heading
         strong Authentication
-        small.text-muted changes apply after restart
+        small(style='margin-left: auto') OIDC changes apply after restart
       .panel-body.auth-settings
-        p.text-muted
+        p.text-muted(style='font-size: 12px')
           | Password and OpenID Connect login for this admin panel (any OIDC provider: Authentik, Keycloak, Pocket ID, and others).
-          | At least one method must stay enabled. OIDC changes apply after restarting the container; password changes apply immediately.
+          | At least one method must stay enabled. Password changes apply immediately.
         .alert.alert-warning(v-show='auth.restartNeeded') Saved settings differ from the running configuration. Restart the container to apply.
-        label.auth-check
+
+        label.toggle
           input(type='checkbox', v-model='auth.password_login')
-          |  Enable password login
+          span.toggle-track
+            span.toggle-thumb
+          | Password login
         .form-group
           label Username
           input.form-control(type='text', v-model='auth.admin_username', spellcheck='false', placeholder='admin')
         .form-group
           label New password
           input.form-control(type='password', v-model='auth.new_password', autocomplete='new-password', spellcheck='false', placeholder='leave blank to keep current')
-          small.text-muted {{ auth.must_change_password ? 'You are using a generated password. Set a new one.' : (auth.password_set ? 'A password is set.' : 'No password set.') }}
+          small {{ auth.must_change_password ? 'You are using a generated password. Set a new one.' : (auth.password_set ? 'A password is set.' : 'No password set.') }}
+
+        hr.auth-divider
+
         .form-group
           label External URL
           input.form-control(type='text', v-model='auth.external_url', spellcheck='false', placeholder='https://share.example.com')
-          small.text-muted Public base URL of this service. Used for the OIDC redirect URL below and for future external links.
-        label.auth-check
+          small Public base URL of this service. Used for the OIDC redirect URL below.
+        label.toggle
           input(type='checkbox', v-model='auth.enabled')
-          |  Enable OIDC login
-        p.text-muted.auth-redirect-hint
+          span.toggle-track
+            span.toggle-thumb
+          | OIDC login
+        p.text-muted(style='font-size: 11px')
           | Register the redirect URL
           code  {{ redirectHint }}
           |  with the provider.
@@ -162,16 +184,23 @@
               placeholder='leave blank to keep existing'
             )
             button.btn(@click='auth.showSecret = !auth.showSecret') {{ auth.showSecret ? 'Hide' : 'Show' }}
-          small.text-muted {{ auth.client_secret_set ? 'A client secret is saved.' : 'No client secret saved.' }}
+          small {{ auth.client_secret_set ? 'A client secret is saved.' : 'No client secret saved.' }}
         .form-group
           label Session lifetime (days)
           input.form-control.auth-days(type='number', min='1', max='365', v-model.number='auth.session_lifetime_days')
         .auth-actions
           button.btn.btn-primary(@click='saveAuth') Save
-          small.text-muted {{ auth.status }}
-        p.text-muted.auth-lockout
+          small {{ auth.status }}
+        p.text-muted(style='font-size: 11px')
           | Locked out? Set AUTH_RESET=1 in docker-compose.yml and restart: OIDC is disabled and fresh
           | admin credentials are printed to the container output. Remove the variable after signing in.
+
+    dialog.confirm-dialog(ref='confirmDlg', @cancel='answer(false)')
+      .confirm-title {{ confirm.title }}
+      .confirm-message {{ confirm.message }}
+      .confirm-actions
+        button.btn(@click='answer(false)') Cancel
+        button.btn(:class="confirm.danger ? 'btn-danger' : 'btn-primary'", @click='answer(true)') {{ confirm.action }}
 </template>
 
 
@@ -215,9 +244,11 @@
         events: [],
         error: '',
         loading: false,
+        loaded: false,
         query: '',
         expanded: null,
         baseURI: document.head.getElementsByTagName('base')[0].href,
+        confirm: { title: '', message: '', action: 'Confirm', danger: false, resolve: null },
         auth: {
           enabled: false,
           external_url: '',
@@ -288,6 +319,23 @@
       humanFileSize,
       relTime,
 
+      countLabel(n, noun) {
+        return `${ n } ${ noun }${ n === 1 ? '' : 's' }`;
+      },
+
+      ask({ title, message, action, danger }) {
+        return new Promise(resolve => {
+          this.confirm = { title, message, action, danger: !!danger, resolve };
+          this.$refs.confirmDlg.showModal();
+        });
+      },
+
+      answer(ok) {
+        if (this.$refs.confirmDlg.open) this.$refs.confirmDlg.close();
+        if (this.confirm.resolve) this.confirm.resolve(ok);
+        this.confirm.resolve = null;
+      },
+
       toggle(sid) {
         this.expanded = this.expanded === sid ? null : sid;
       },
@@ -317,6 +365,7 @@
           this.db = await dataRes.json();
           this.events = (await actRes.json()).events;
           this.error = '';
+          this.loaded = true;
         } catch (e) {
           this.error = 'Failed to load admin data: ' + e.message;
         }
@@ -324,13 +373,24 @@
       },
 
       async deleteShare(share) {
-        const files = share.files.length === 1 ? '1 file' : `${share.files.length} files`;
-        if (!confirm(`Delete share ${share.sid} (${files})? This cannot be undone.`)) return;
+        const ok = await this.ask({
+          title: `Delete share ${share.sid}?`,
+          message: `${this.countLabel(share.files.length, 'file')} will be removed. This cannot be undone.`,
+          action: 'Delete',
+          danger: true,
+        });
+        if (!ok) return;
         await this.doDelete(`admin/files/${share.sid}`);
       },
 
       async deleteFile(share, file) {
-        if (!confirm(`Delete ${file.metadata.name} from share ${share.sid}? This cannot be undone.`)) return;
+        const ok = await this.ask({
+          title: `Delete ${file.metadata.name}?`,
+          message: `The file is removed from share ${share.sid}. This cannot be undone.`,
+          action: 'Delete',
+          danger: true,
+        });
+        if (!ok) return;
         await this.doDelete(`admin/files/${share.sid}/${file.key}`);
       },
 
@@ -423,11 +483,23 @@
         }
       },
 
-      confirmOneTimeDownload(ev, file) {
-        if (file.metadata.retention === 'one-time'
-          && !confirm('This is a one-time file. Downloading it here consumes the share link. Continue?')) {
-          ev.preventDefault();
-        }
+      async confirmOneTimeDownload(ev, file) {
+        if (file.metadata.retention !== 'one-time') return;
+        ev.preventDefault();
+        const link = ev.currentTarget.href;
+        const ok = await this.ask({
+          title: `Download ${file.metadata.name}?`,
+          message: 'This is a one-time file. Downloading it here consumes the share link.',
+          action: 'Download',
+        });
+        if (!ok) return;
+        const a = document.createElement('a');
+        a.href = link;
+        a.download = file.metadata.name;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       },
 
       eventText(ev) {

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Complete visual redesign of every page (upload, download, admin, login, error): dark monospace instrument-panel look with self-hosted JetBrains Mono, an ambient accent glow and a sticky translucent top bar
+- Admin dashboard rebuilt: ledger-style stat strip, panel headers with live counts, activity feed rows tinted by event type, toggle switches in the Authentication section, and in-page confirmation dialogs instead of browser confirm prompts
+- Admin panels show loading placeholders until the first data arrives
+
 ### Added
 - Admin credentials are generated on first launch and printed to the container output; after signing in, a prompt asks for a new password. ADMIN_USERNAME and ADMIN_PASSWORD env vars are gone; username and password are managed in the Authentication section and stored hashed
 - Password login can be disabled for OIDC-only setups; saving validates that at least one login method stays enabled, and password login can only be turned off while OIDC is active

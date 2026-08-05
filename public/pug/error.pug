@@ -5,10 +5,11 @@ html(lang='en')
     include partials/head_custom
   body
     .container
-      .topbar
-        h1 NyShare
-      .alert.alert-danger
-        strong #{error}
-      p
-        a.btn.btn-primary(title='New Upload' href=uploadAppPath) New Upload
+      .error-app
+        .topbar
+          h1 NyShare
+        .alert.alert-danger
+          strong #{error}
+        p
+          a.btn.btn-primary(title='New upload' href=uploadAppPath) New upload
     include partials/footer

@@ -18,6 +18,10 @@ The upstream `adminPass` key in config.js is dead: nothing reads it anymore, adm
 
 Admin activity events (upload, download, archive, expired, deleted, each with client IP) are appended to `.activity.jsonl` in the upload dir, capped to the newest 1000 entries at startup (`lib/activityLog.js`). Events flow through the existing eventBus; a new event type just needs an `eventBus.on` subscription in `lib/endpoints.js` and a verb/icon entry in `Admin.vue`.
 
+## Visual design comes from the design bible
+
+The UI follows the archivists-instrument style from the private design-bible repo (`styles/archivists-instrument`), extracted from social-downloader. `public/assets/styles.css` opens with that style's token sheet copied in verbatim (only the font paths differ); never hardcode a color, radius, shadow, or duration that has a token there, and check the style folder's checklist.md before calling a UI change done. The JetBrains Mono woff2 files in `public/assets/fonts/` are copies of social-downloader's vendored fonts (OFL licensed, license file alongside). The login page keeps its multi-downloader-identical layout; only the surface styling changed.
+
 ## Client IPs behind Caddy
 
 `req.ip` is the Docker network address unless `PSITRANSFER_TRUST_PROXY` is set. The value is passed to Express `trust proxy` as a string, so use proxy-addr values like `uniquelocal` (private subnets, set in docker-compose.yml), not `1` or `true`.
