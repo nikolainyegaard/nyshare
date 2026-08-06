@@ -188,6 +188,10 @@ body::before {
 
 .topbar h1 { display: flex; align-items: center; gap: 10px; }
 
+/* The title is a logo: links home, cannot be text-selected */
+h1 { user-select: none; }
+h1 .brand { color: inherit; }
+
 .topbar-actions {
   display: flex;
   gap: 8px;
@@ -1047,6 +1051,12 @@ svg.fa-icon[style*="animation"], .spin svg.fa-icon { animation: spin 0.8s linear
   .section-head { flex-wrap: wrap; }
   .section-head .input-search { width: 100%; margin-left: 0; order: 9; }
 }
+
+/* Share detail modal: per-share download history */
+.share-history { margin-top: 16px; }
+.share-history .label-caps { display: block; margin-bottom: 6px; }
+.share-history .activity-feed { max-height: 240px; }
+.ua-chip { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 
 /* Activity feed: dense rows tinted by event kind */
 .activity-feed {

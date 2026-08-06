@@ -1,7 +1,8 @@
 <template lang="pug">
   .download-app
     .topbar
-      h1 NyShare
+      h1
+        a.brand(href='.') NyShare
       a.btn.btn-primary(@click='newSession()', :title='$root.lang.newUpload')
         icon.fa-fw(name="fa-cloud-upload-alt")
         span.hidden-xs  {{ $root.lang.newUpload }}

@@ -1,7 +1,8 @@
 <template lang="pug">
   .admin-app
     .topbar
-      h1 NyShare
+      h1
+        a.brand(href='.') NyShare
         span.topbar-tag Admin
       .topbar-actions
         button.btn.btn-sm(@click='refresh()', :disabled='loading')
@@ -105,7 +106,7 @@
             span.sf-cell {{ humanFileSize(file.size) }}
             span.sf-cell(:title="file.metadata.lastDownload ? 'Last download: ' + formatDate(+file.metadata.lastDownload) : 'Never downloaded'")
               | {{ countLabel(+file.metadata.downloads || 0, 'download') }}
-            span.ip-chip(v-if='file.metadata.clientIp', title='Uploaded from') {{ file.metadata.clientIp }}
+            span.ip-chip(v-if='file.metadata.clientIp', :title="'Uploaded from ' + file.metadata.clientIp + (file.metadata.clientUa ? ' with ' + file.metadata.clientUa : '')") {{ file.metadata.clientIp }}
             span.sf-actions
               a.btn(
                 :href='fileLink(detailShare.sid, file.key)',
@@ -116,18 +117,29 @@
                 icon(name='fa-download')
               button.btn.btn-danger(@click='deleteFile(detailShare, file)', title='Delete file')
                 icon(name='fa-trash')
+        .share-history
+          span.label-caps Download history
+          p.empty-state(v-if='!shareHistory.length') No downloads recorded for this share
+          ul.activity-feed(v-else)
+            li(v-for='(ev, i) in shareHistory', :key='ev.time + "-" + i', :class='"activity-" + ev.type')
+              span.activity-icon
+                icon(:name='eventIcon(ev.type)')
+              span.activity-desc {{ ev.file }}
+              span.ip-chip.ua-chip(v-if='ev.ua', :title='ev.ua') {{ ev.ua }}
+              span.ip-chip(v-if='ev.ip') {{ ev.ip }}
+              span.activity-time(:title='formatDate(ev.time)') {{ relTime(ev.time) }}
 
     .panel
       .panel-heading
         strong Recent activity
-        small(v-if='loaded && events.length') {{ countLabel(events.length, 'event') }}
+        small(v-if='loaded && feedEvents.length') {{ countLabel(feedEvents.length, 'event') }}
         small(style='margin-left: auto') refreshes every 30s
       .panel-body(v-if='!loaded')
         .skeleton(v-for='n in 4', :key='n', style='height: 22px')
-      .panel-body(v-else-if='!events.length')
+      .panel-body(v-else-if='!feedEvents.length')
         p.empty-state No activity yet. Uploads and downloads will show up here.
       ul.activity-feed(v-else)
-        li(v-for='(ev, i) in events', :key='ev.time + "-" + i', :class='"activity-" + ev.type')
+        li(v-for='(ev, i) in feedEvents', :key='ev.time + "-" + i', :class='"activity-" + ev.type', :title='ev.ua')
           span.activity-icon
             icon(:name='eventIcon(ev.type)')
           span.activity-desc
@@ -346,6 +358,17 @@
         return this.shares.find(s => s.sid === this.detailSid) || null;
       },
 
+      // Reaches as far back as the activity log cap (1000 events)
+      shareHistory() {
+        if (!this.detailSid) return [];
+        return this.events.filter(ev =>
+          ev.sid === this.detailSid && (ev.type === 'download' || ev.type === 'archive'));
+      },
+
+      feedEvents() {
+        return this.events.slice(0, 200);
+      },
+
       filteredShares() {
         const q = this.query.trim().toLowerCase();
         if (!q) return this.shares;
@@ -416,7 +439,7 @@
         try {
           const [dataRes, actRes, auditRes] = await Promise.all([
             fetch('admin/data.json'),
-            fetch('admin/activity.json'),
+            fetch('admin/activity.json?limit=1000'),
             fetch('admin/audit.json'),
           ]);
           if (dataRes.status === 401 || actRes.status === 401 || auditRes.status === 401) {

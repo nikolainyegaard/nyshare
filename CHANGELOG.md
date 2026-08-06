@@ -12,7 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin dashboard rebuilt: ledger-style stat strip, shares as a dense aligned-column list (created, expiry, size, downloads, uploader IP) with a file detail modal instead of expandable table rows, activity feed rows tinted by event type, toggle switches in the Authentication section, and in-page confirmation dialogs instead of browser confirm prompts
 - Admin panels show loading placeholders until the first data arrives
 
+### Fixed
+- Share detail and preview modals are centered in the viewport (they rendered pinned to the top-left corner)
+
 ### Added
+- Download history in the admin share modal: every download and archive download of the share with file name, client IP, user agent and time, sourced from the activity log
+- Activity log records the client user agent for uploads, downloads and archive downloads; the uploader's user agent is stored in file metadata and shown when hovering the uploader IP in the share modal
+- The page title links back to the front page on every page (upload, download, admin, login, error) and is no longer text-selectable
 - Admin audit log: logins, failed logins, OIDC sign-ins and failures, logouts, settings changes (changed field names only, never values), admin share and file deletions, AUTH_RESET use and credential generation are recorded with actor, client IP and user agent to `.audit.jsonl` in the data dir (capped at 1000 events) and shown in a new Audit log panel on the admin page
 - Admin credentials are generated on first launch and printed to the container output; after signing in, a prompt asks for a new password. ADMIN_USERNAME and ADMIN_PASSWORD env vars are gone; username and password are managed in the Authentication section and stored hashed
 - Password login can be disabled for OIDC-only setups; saving validates that at least one login method stays enabled, and password login can only be turned off while OIDC is active

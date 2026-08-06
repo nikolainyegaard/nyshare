@@ -1,7 +1,8 @@
 <template lang="pug">
   .upload-app#uploadApp
     .topbar
-      h1 NyShare
+      h1
+        a.brand(href='.') NyShare
       .topbar-actions
         a.btn.btn-primary(
           v-if='!showLogin',

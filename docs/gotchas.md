@@ -16,7 +16,9 @@ The upstream `adminPass` key in config.js is dead: nothing reads it anymore, adm
 
 ## Activity log and audit log
 
-Admin activity events (upload, download, archive, expired, deleted, each with client IP) are appended to `.activity.jsonl` in the upload dir, capped to the newest 1000 entries at startup. Events flow through the existing eventBus; a new event type just needs an `eventBus.on` subscription in `lib/endpoints.js` and a verb/icon entry in `Admin.vue`.
+Admin activity events (upload, download, archive, expired, deleted, each with client IP and user agent where a request is involved) are appended to `.activity.jsonl` in the upload dir, capped to the newest 1000 entries at startup. Events flow through the existing eventBus; a new event type just needs an `eventBus.on` subscription in `lib/endpoints.js` and a verb/icon entry in `Admin.vue`.
+
+The per-share download history in the admin share modal is not stored separately: it filters the activity log by sid client-side, so it reaches back at most 1000 events across all shares. If long-term per-share history ever matters, persist download records in the share metadata instead.
 
 The audit log (`.audit.jsonl`, same mechanics via the shared `lib/jsonlLog.js` factory) is deliberately a separate file so bulk share traffic can never push security events out of the cap. Entries carry actor, client IP and user agent via the `audit(req, type, data)` helper in `lib/endpoints.js`; startup events (AUTH_RESET, credential generation) have no request and log without them. Settings changes log changed field names only, never values: the client secret and password must not land in the log. A new audit event type needs the `audit()` call, plus a text/icon entry (and optionally a tint class) in `Admin.vue`. The portable implementation guide is `admin-audit-logging.md` in the claude-files repo.
 

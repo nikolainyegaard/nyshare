@@ -1,5 +1,5 @@
 <template lang="pug">
-  .modal.fade.in.background-darken(ref='modal', style="display:block", tabindex='-1', role='dialog', @click.self='close()', @keyup.esc='close()', @keyup.left="$emit('prev')", @keyup.right="$emit('next')")
+  .modal.fade.in.background-darken(ref='modal', tabindex='-1', role='dialog', @click.self='close()', @keyup.esc='close()', @keyup.left="$emit('prev')", @keyup.right="$emit('next')")
     .modal-dialog.modal-fluid(role='document')
       .modal-content
         .modal-header(v-if='hasHeader')

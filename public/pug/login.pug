@@ -5,7 +5,8 @@ html(lang='en')
   body
     .login-wrap
       .login-box
-        h1 NyShare
+        h1
+          a.brand(href='.') NyShare
         p.login-subtitle File sharing admin
         if error
           .login-error #{error}

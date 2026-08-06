@@ -88,7 +88,7 @@ Mostly upstream, plus fork additions for the admin dashboard. All paths are rela
 | GET | `/admin/auth-config.json` | Auth settings (secret write-only, plus runtime flags) |
 | POST | `/admin/auth-config.json` | Save auth settings to oauth.json (OIDC changes need a restart) |
 | GET | `/admin/data.json` | Admin bucket listing (session auth) |
-| GET | `/admin/activity.json` | Last 200 activity events, newest first (session auth) |
+| GET | `/admin/activity.json` | Activity events, newest first; `?limit=` up to 1000, default 200 (session auth) |
 | GET | `/admin/audit.json` | Last 200 audit events (logins, settings changes, admin actions), newest first (session auth) |
 | DELETE | `/admin/files/:sid` | Delete a whole share (session auth) |
 | DELETE | `/admin/files/:sid/:key` | Delete a single file (session auth) |

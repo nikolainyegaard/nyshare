@@ -51,7 +51,7 @@ Then `docker compose up -d`.
 
 ## Admin panel
 
-Lives at `/admin`. It shows storage and download stats, every active share (created, expiry, size, uploader IP, download counts, password and one-time badges), and a recent activity feed of uploads, downloads, expiries and deletions with client IPs. Shares and single files can be deleted or downloaded from the panel.
+Lives at `/admin`. It shows storage and download stats, every active share (created, expiry, size, uploader IP, download counts, password and one-time badges), and a recent activity feed of uploads, downloads, expiries and deletions with client IPs and user agents. Clicking a share opens its files and a download history: every download of the share with client IP, user agent and time. Shares and single files can be deleted or downloaded from the panel.
 
 ### Signing in
 
