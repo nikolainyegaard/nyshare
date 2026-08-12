@@ -14,7 +14,7 @@
               :value="seconds"
               :selected="seconds === retention"
             ) {{ $root.lang.retentions[seconds] || label }}
-        div
+        .form-group
           label(for='password') {{ $root.lang.password }}
           .input-group(:class="{'has-error': config.requireBucketPassword && !password}")
             input#password.form-control(

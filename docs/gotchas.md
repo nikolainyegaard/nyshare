@@ -26,6 +26,8 @@ The audit log (`.audit.jsonl`, same mechanics via the shared `lib/jsonlLog.js` f
 
 The UI follows the archivists-instrument style from the private design-bible repo (`styles/archivists-instrument`), extracted from social-downloader. `public/assets/styles.css` opens with that style's token sheet copied in verbatim (only the font paths differ); never hardcode a color, radius, shadow, or duration that has a token there, and check the style folder's checklist.md before calling a UI change done. The JetBrains Mono woff2 files in `public/assets/fonts/` are copies of social-downloader's vendored fonts (OFL licensed, license file alongside). The login page keeps its multi-downloader-identical layout; only the surface styling changed.
 
+The style's global reset zeroes every margin, so vertical rhythm comes only from `gap` on layout containers: the page wrappers (`.upload-app` etc., grid, 24px), the upload columns (`.col-sm-7`/`.col-sm-5`, flex column, 16px) and `.panel-body` (flex column, 14px). Anything not a direct child of one of these stacks with zero space. In Vue templates this bites conditional wrappers: a plain `div(v-if=...)` between the page grid and its sections swallows the gap, so such wrappers must restate the grid (see `.upload-main`). Elements written against Bootstrap margins (`.form-group`, error paragraphs) only have margins where a rule in styles.css grants them.
+
 ## Client IPs behind Caddy
 
 `req.ip` is the Docker network address unless `PSITRANSFER_TRUST_PROXY` is set. The value is passed to Express `trust proxy` as a string, so use proxy-addr values like `uniquelocal` (private subnets, set in docker-compose.yml), not `1` or `true`.

@@ -30,7 +30,7 @@
       button.uploadPass.btn.btn-primary(:disabled='uploadPassword.length<1', type="submit")
         icon.fa-fw(name="fa-key")
         |  {{ $root.lang.login }}
-    div(v-else-if="$root.configFetched")
+    .upload-main(v-else-if="$root.configFetched")
       .well(v-show="state === 'uploaded'")
         .pull-right.btn-group.upload-success-btns
           a.btn.btn-primary(

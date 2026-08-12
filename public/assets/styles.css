@@ -168,6 +168,12 @@ body::before {
 .upload-app > *, .download-app > *, .admin-app > *, .error-app > * { min-width: 0; }
 .error-app { justify-items: start; }
 
+/* Conditional wrappers inside a page (v-if/v-else branches) restate the
+   section grid; the reset zeroes margins, so an unstyled wrapper would
+   stack its children with no space at all */
+.upload-main { display: grid; gap: 24px; }
+.upload-main > * { min-width: 0; }
+
 /* Sticky glass top chrome. Full-bleed within the centered column: the
    negative margins stretch it to the viewport, the padding realigns the
    contents with the 1200px content column. */
@@ -322,6 +328,12 @@ code { font-size: 12px; color: var(--text-dim); }
 /* ------------------------------------------------------------------ */
 
 .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+
+/* Panel bodies space children with their own 14px gap; the margin would double it */
+.panel-body .form-group { margin-bottom: 0; }
+
+/* Inline error lines (wrong password) appear above a button; keep them off it */
+.well p.text-danger { margin-bottom: 14px; }
 
 label {
   display: block;
@@ -537,8 +549,9 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 .row { display: flex; gap: 16px; flex-wrap: wrap; }
 .row > * { min-width: 0; }
-.col-sm-7 { flex: 7; min-width: 280px; }
-.col-sm-5 { flex: 5; min-width: 220px; }
+/* Columns stack their panels and buttons with the 16px panel gap */
+.col-sm-7 { flex: 7; min-width: 280px; display: flex; flex-direction: column; gap: 16px; }
+.col-sm-5 { flex: 5; min-width: 220px; display: flex; flex-direction: column; gap: 16px; }
 .col-xs-12 { flex: 0 0 100%; width: 100%; }
 
 @media (max-width: 640px) {
@@ -860,6 +873,9 @@ svg.fa-icon[style*="animation"], .spin svg.fa-icon { animation: spin 0.8s linear
   }
 }
 
+/* Per-file error banner sits below the comment input in the same cell */
+.upload-files .alert { margin-top: 8px; }
+
 .upload-files .btns a { color: var(--muted); transition: color var(--dur-fast); }
 @media (hover: hover) {
   .upload-files .btns a:hover { color: var(--red); }
@@ -1108,7 +1124,6 @@ a.activity-sid { color: var(--accent); text-decoration: underline dotted; text-u
 
 /* Authentication settings: stacked field pattern */
 .auth-settings { max-width: 500px; gap: 14px; }
-.auth-settings .form-group { margin-bottom: 0; }
 .auth-settings .form-group small { font-size: 11px; color: var(--muted); }
 
 /* Toggle switch */

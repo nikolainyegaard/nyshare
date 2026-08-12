@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Share detail and preview modals are centered in the viewport (they rendered pinned to the top-left corner)
+- Spacing restored between upload page sections: the success box, the progress row and the files/settings columns sat directly on top of each other, the upload button touched the settings panel, per-file error banners touched the comment field and wrong-password messages touched the button below them
 
 ### Added
 - Download history in the admin share modal: every download and archive download of the share with file name, client IP, user agent and time, sourced from the activity log
