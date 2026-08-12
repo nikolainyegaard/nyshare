@@ -3,8 +3,10 @@ html(lang='en')
   head
     include partials/head
     include partials/head_custom
+    each css in assets.admin.css
+      link(rel='stylesheet' href=`app/${css}`)
   body
     .container
       #admin
     include partials/footer
-    script(type='module', src='app/admin.js')
+    script(type='module', src=`app/${assets.admin.js}`)

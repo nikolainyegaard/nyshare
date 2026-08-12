@@ -28,6 +28,14 @@ The UI follows the archivists-instrument style from the private design-bible rep
 
 The style's global reset zeroes every margin, so vertical rhythm comes only from `gap` on layout containers: the page wrappers (`.upload-app` etc., grid, 24px), the upload columns (`.col-sm-7`/`.col-sm-5`, flex column, 16px) and `.panel-body` (flex column, 14px). Anything not a direct child of one of these stacks with zero space. In Vue templates this bites conditional wrappers: a plain `div(v-if=...)` between the page grid and its sections swallows the gap, so such wrappers must restate the grid (see `.upload-main`). Elements written against Bootstrap margins (`.form-group`, error paragraphs) only have margins where a rule in styles.css grants them.
 
+## Frontend cache busting
+
+Vite emits the bundle as `[name]-[hash].js` files plus `.vite/manifest.json` in `public/app/`. `viteAssets()` in `lib/endpoints.js` resolves each entry's real file name (and its CSS, including CSS pulled in by imported chunks) from that manifest; `pugVars.assets` is a getter, so every render re-checks the manifest mtime and a rebuild lands without a backend restart. Without a manifest the un-hashed names are used as a fallback so an unbuilt checkout still serves whatever bundle it has.
+
+Cache headers follow from the names: only files matching the hashed pattern get `immutable, max-age=1y` (a regex guard in the static mount, so the fallback names can never get pinned in a cache). `public/assets/` is not part of the Vite build; it gets `max-age=7d` and the references to `styles.css` and the favicons in `head.pug` carry `?v=appVersion`, which changes every Docker build (`BUILD_VERSION`), so edits there show up on the next deploy. The font files are the only unbusted assets; they are content that never changes, and worst case they lag 7 days.
+
+Entry CSS must be linked from the manifest in each pug shell (`each css in assets.<page>.css`). Vue `<style>` blocks compile into these files and are NOT loaded by the entry script; before the manifest wiring, `upload.css` was emitted but never linked and component styles silently missed production while the Vite dev server injected them locally.
+
 ## Client IPs behind Caddy
 
 `req.ip` is the Docker network address unless `PSITRANSFER_TRUST_PROXY` is set. The value is passed to Express `trust proxy` as a string, so use proxy-addr values like `uniquelocal` (private subnets, set in docker-compose.yml), not `1` or `true`.

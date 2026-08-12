@@ -15,8 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Share detail and preview modals are centered in the viewport (they rendered pinned to the top-left corner)
 - Spacing restored between upload page sections: the success box, the progress row and the files/settings columns sat directly on top of each other, the upload button touched the settings panel, per-file error banners touched the comment field and wrong-password messages touched the button below them
+- Styles written inside Vue components (the small-screen upload tweaks) now load in production; the build emitted them to a CSS file no page ever linked
 
 ### Added
+- Frontend bundle files carry a content hash in their name and cache for a year; styles.css and the favicons are cache-busted per deploy. UI changes now show up immediately even behind a caching CDN like Cloudflare
 - Download history in the admin share modal: every download and archive download of the share with file name, client IP, user agent and time, sourced from the activity log
 - Activity log records the client user agent for uploads, downloads and archive downloads; the uploader's user agent is stored in file metadata and shown when hovering the uploader IP in the share modal
 - The page title links back to the front page on every page (upload, download, admin, login, error) and is no longer text-selectable

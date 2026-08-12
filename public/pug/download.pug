@@ -3,8 +3,10 @@ html(lang='en')
   head
     include partials/head
     include partials/head_custom
+    each css in assets.download.css
+      link(rel='stylesheet' href=`app/${css}`)
   body
     .container
       #download
     include partials/footer
-    script(type='module', src='app/download.js')
+    script(type='module', src=`app/${assets.download.js}`)

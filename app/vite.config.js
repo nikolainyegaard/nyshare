@@ -10,6 +10,9 @@ export default defineConfig({
   build: {
     outDir: '../public/app',
     emptyOutDir: true,
+    // Content-hashed file names for cache busting; the backend resolves the
+    // real names from .vite/manifest.json when rendering the pug shells
+    manifest: true,
     rollupOptions: {
       input: {
         upload: resolve(__dirname, 'src/upload.js'),
@@ -17,9 +20,9 @@ export default defineConfig({
         admin: resolve(__dirname, 'src/admin.js'),
       },
       output: {
-        entryFileNames: '[name].js',
-        chunkFileNames: 'common.js',
-        assetFileNames: '[name].[ext]'
+        entryFileNames: '[name]-[hash].js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: '[name]-[hash].[ext]'
       }
     }
   },

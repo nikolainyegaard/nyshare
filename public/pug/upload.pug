@@ -3,9 +3,11 @@ html(lang='en')
   head
     include partials/head
     include partials/head_custom
+    each css in assets.upload.css
+      link(rel='stylesheet' href=`app/${css}`)
   body
     .container
       #upload
     include partials/footer
     script PSITRANSFER_UPLOAD_PATH = '#{uploadAppPath}';
-    script(type='module', src='app/upload.js')
+    script(type='module', src=`app/${assets.upload.js}`)
