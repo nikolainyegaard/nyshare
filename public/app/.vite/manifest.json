@@ -1,0 +1,54 @@
+{
+  "_Clipboard-poVslx1V.js": {
+    "file": "Clipboard-poVslx1V.js",
+    "name": "Clipboard"
+  },
+  "_FileIcon-DBsSdJHC.js": {
+    "file": "FileIcon-DBsSdJHC.js",
+    "name": "FileIcon",
+    "imports": [
+      "_Clipboard-poVslx1V.js"
+    ]
+  },
+  "_Modal-Ctj51BeT.js": {
+    "file": "Modal-Ctj51BeT.js",
+    "name": "Modal",
+    "imports": [
+      "_Clipboard-poVslx1V.js"
+    ]
+  },
+  "src/admin.js": {
+    "file": "admin-BpmQHsTC.js",
+    "name": "admin",
+    "src": "src/admin.js",
+    "isEntry": true,
+    "imports": [
+      "_Clipboard-poVslx1V.js",
+      "_Modal-Ctj51BeT.js"
+    ]
+  },
+  "src/download.js": {
+    "file": "download-DEgLdLO0.js",
+    "name": "download",
+    "src": "src/download.js",
+    "isEntry": true,
+    "imports": [
+      "_Clipboard-poVslx1V.js",
+      "_FileIcon-DBsSdJHC.js",
+      "_Modal-Ctj51BeT.js"
+    ]
+  },
+  "src/upload.js": {
+    "file": "upload-BKZQ8eGe.js",
+    "name": "upload",
+    "src": "src/upload.js",
+    "isEntry": true,
+    "imports": [
+      "_Clipboard-poVslx1V.js",
+      "_FileIcon-DBsSdJHC.js"
+    ],
+    "css": [
+      "upload-BMC2QWRL.css"
+    ]
+  }
+}
